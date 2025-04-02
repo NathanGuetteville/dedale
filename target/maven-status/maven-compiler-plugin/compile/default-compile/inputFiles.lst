@@ -1,0 +1,13 @@
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/agents/dummies/DummyCollectorAgent.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/agents/dummies/DummyMovingAgent.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/agents/dummies/DummyTankerAgent.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/agents/dummies/explo/ExploreCoopAgent.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/agents/dummies/explo/ExploreSoloAgent.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/behaviours/ExploCoopBehaviour.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/behaviours/ExploSoloBehaviour.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/behaviours/RandomWalkBehaviour.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/behaviours/SayHelloBehaviour.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/behaviours/ShareMapBehaviour.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/mas/knowledge/MapRepresentation.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/princ/ConfigurationFile.java
+/Users/nathanguetteville/git/dedale-etu/dedale-etu/src/main/java/eu/su/mas/dedaleEtu/princ/Principal.java

@@ -1,0 +1,63 @@
+package eu.su.mas.dedaleEtu.mas.behaviours;
+
+import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
+public class MessageBehaviour extends OneShotBehaviour {
+	
+	private int transition = 0;
+	
+	public MessageBehaviour(AbstractDedaleAgent a) {
+		super(a);
+	}
+
+	@Override
+	public void action() {
+		System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
+		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		if (fsm.hasSentPing()) {
+			this.myAgent.doWait(100);
+		}
+		
+		MessageTemplate pongTemplate=MessageTemplate.and(
+				MessageTemplate.MatchProtocol("PONG"),
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage pongReceived=this.myAgent.receive(pongTemplate);
+		if (pongReceived!=null) {
+			this.transition = 4; // SHARE
+			fsm.setPingSent(false);
+			fsm.setCurrentInterlocutor(pongReceived.getSender().getLocalName());
+			return;
+		}
+		
+		MessageTemplate pingTemplate=MessageTemplate.and(
+				MessageTemplate.MatchProtocol("PING"),
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage pingReceived=this.myAgent.receive(pingTemplate);
+		if (pingReceived!=null) {
+			this.transition = 3; // PONG
+			fsm.setPingSent(false);
+			fsm.setCurrentInterlocutor(pingReceived.getSender().getLocalName());
+			return;
+		}
+		
+		if (fsm.hasSentPing()) {
+			this.transition = 1; // EXPLO
+			fsm.setPingSent(false);
+			return;
+		}
+		
+		this.transition = 2; // PING
+		return;
+		
+		
+	}
+		
+	@Override
+	public int onEnd() {
+		return this.transition;
+	}
+
+}
