@@ -21,7 +21,7 @@ public class AbortCommBehaviour extends WakerBehaviour {
 	
 	public void onWake() {
 		System.out.println(this.myAgent.getLocalName()+" : Finie la récré !");
-		this.myAgent.addBehaviour(new ExplorationBehaviour((AbstractDedaleAgent)this.myAgent, this.allMaps, agent_names, true));
+		this.myAgent.addBehaviour(new ExplorationBehaviour((AbstractDedaleAgent)this.myAgent, agent_names));
 		((ParallelComm) getParent()).setStop();
 	}	
 }

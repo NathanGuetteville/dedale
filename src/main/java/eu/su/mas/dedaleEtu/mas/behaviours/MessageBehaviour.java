@@ -15,7 +15,7 @@ public class MessageBehaviour extends OneShotBehaviour {
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		if (fsm.hasSentPing()) {
 			this.myAgent.doWait(100);
@@ -26,10 +26,14 @@ public class MessageBehaviour extends OneShotBehaviour {
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pongReceived=this.myAgent.receive(pongTemplate);
 		if (pongReceived!=null) {
-			this.transition = 4; // SHARE
-			fsm.setPingSent(false);
-			fsm.setCurrentInterlocutor(pongReceived.getSender().getLocalName());
-			return;
+			String pongSender = pongReceived.getSender().getLocalName();
+			if (!pongSender.equals(this.myAgent.getLocalName())) {
+				this.transition = 4; // SHARE
+				fsm.setPingSent(false);
+				fsm.setCurrentInterlocutor(pongSender);
+				return;
+			}
+			
 		}
 		
 		MessageTemplate pingTemplate=MessageTemplate.and(
@@ -37,10 +41,13 @@ public class MessageBehaviour extends OneShotBehaviour {
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pingReceived=this.myAgent.receive(pingTemplate);
 		if (pingReceived!=null) {
-			this.transition = 3; // PONG
-			fsm.setPingSent(false);
-			fsm.setCurrentInterlocutor(pingReceived.getSender().getLocalName());
-			return;
+			String pingSender = pingReceived.getSender().getLocalName();
+			if (!pingSender.equals(this.myAgent.getLocalName())) {
+				this.transition = 3; // PONG
+				fsm.setPingSent(false);
+				fsm.setCurrentInterlocutor(pingReceived.getSender().getLocalName());
+				return;
+			}
 		}
 		
 		if (fsm.hasSentPing()) {
