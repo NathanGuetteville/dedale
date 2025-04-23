@@ -49,7 +49,7 @@ public class HandshakeBehaviour extends OneShotBehaviour{
 			AID idSender = msgReceived.getSender();
 			String senderName = idSender.getLocalName();
 			
-			ShareMapsBehaviour smb = new ShareMapsBehaviour((AbstractDedaleAgent) this.myAgent, allMaps, senderName);
+			ShareMapsBehaviour smb = new ShareMapsBehaviour((AbstractDedaleAgent) this.myAgent);
 			this.myAgent.addBehaviour(smb);
 		}
 		

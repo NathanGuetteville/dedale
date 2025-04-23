@@ -25,12 +25,13 @@ public class PingBehaviour extends OneShotBehaviour {
 	
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : PingBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : PingBehaviour");
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 		msg.setProtocol("PING");
 		msg.setSender(this.myAgent.getAID());
 		for (String receiver : this.agentNames) {
-			msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
+			if (!receiver.equals(this.myAgent.getLocalName()))
+				msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
 		}
 		
 		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);

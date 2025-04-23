@@ -45,7 +45,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : ExplorationBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : ExplorationBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		if (fsm.getAllMaps() == null) {
 			fsm.initAllMaps();
@@ -64,14 +64,15 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
 			 */
 			try {
-				this.myAgent.doWait(100);
+				this.myAgent.doWait(1000);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
 			//1) remove the current node from openlist and add it to closedNodes.
+			String currentNode = myPosition.getLocationId();
 			for(String i : this.list_agentNames) {
-				fsm.addNodeToMap(myPosition.getLocationId(), i);
+				fsm.addNodeToMap(currentNode, i);
 			}
 			
 			
@@ -83,21 +84,26 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 				Location accessibleNode=iter.next().getLeft();
 				for(String i : list_agentNames) {
 					boolean isNewNode=fsm.addNewNodeToMap(accessibleNode.getLocationId(), i);
+					//boolean isOpen=fsm.getMap(this.myAgent.getLocalName()).getOpenNodes().contains(accessibleNode.getLocationId());
 					//the node may exist, but not necessarily the edge
+					//System.out.println("Checking node: " + accessibleNode.getLocationId() 
+	                   //+ " | isNewNode=" + isNewNode 
+	                   //+ " | isOpen=" + isOpen);
+
 					if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 						fsm.addEdgeToMap(myPosition.getLocationId(), accessibleNode.getLocationId(), i);
-						if (nextNodeId==null && isNewNode) nextNodeId=accessibleNode.getLocationId();
+						if (i == this.myAgent.getLocalName() && nextNodeId==null && isNewNode) nextNodeId=accessibleNode.getLocationId();
 					}
 				}
 			}
 			
 
 			//3) while openNodes is not empty, continues.
-			System.out.println(this.myAgent.getLocalName()+" : "+fsm.getMap(this.myAgent.getLocalName()).getOpenNodes());
+			//System.out.println(this.myAgent.getLocalName()+" : "+fsm.getMap(this.myAgent.getLocalName()).getOpenNodes());
 			if (!fsm.getMap(this.myAgent.getLocalName()).hasOpenNode()){
 				//Explo finished
 				finished=true;
-				System.out.println(this.myAgent.getLocalName()+" - Exploration successfully done, behaviour removed.");
+				//System.out.println(this.myAgent.getLocalName()+" - Exploration successfully done, behaviour removed.");
 			}else{
 				//4) select next move.
 				//4.1 If there exist one open node directly reachable, go for it,
@@ -105,13 +111,15 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 				if (nextNodeId==null){
 					//no directly accessible openNode
 					//chose one, compute the path and take the first step.
-					nextNodeId=fsm.getMap(this.myAgent.getLocalName()).getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
-					System.out.println("     - "+nextNodeId);
+					List<String> path = fsm.getMap(this.myAgent.getLocalName()).getShortestPathToClosestOpenNode(myPosition.getLocationId());
+					nextNodeId=path.get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
+					//System.out.println("     - Destination : "+path.getLast());
+					
 					//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
 				}else {
 					//System.out.println("nextNode notNUll - "+this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"\n -- nextNode: "+nextNode);
 				}
-
+				//System.out.println("     - Next Node : "+nextNodeId);
 				((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId));
 			}
 

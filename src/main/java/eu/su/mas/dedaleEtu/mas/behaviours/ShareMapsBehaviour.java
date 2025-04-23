@@ -40,10 +40,13 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : ShareMapsBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : ShareMapsBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		receiver = fsm.getCurrentInterlocutor();
 		if (receiver == null) return;
+		
+
+		//System.out.println(this.myAgent.getLocalName()+" vs "+receiver);
 		
 		this.myAgent.doWait(100);
 		
@@ -67,7 +70,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage msgReceived=this.myAgent.receive(msgTemplate);
 		if (msgReceived!=null) {
-			System.out.println(this.myAgent.getLocalName()+" : Map Received");
+			//System.out.println(this.myAgent.getLocalName()+" : Map Received");
 			SerializableSimpleGraph<String, MapAttribute> sgreceived=null;
 			try {
 				sgreceived = (SerializableSimpleGraph<String, MapAttribute>)msgReceived.getContentObject();
