@@ -23,14 +23,13 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import javafx.util.Pair;
 
-public class ExplorationBehaviour extends OneShotBehaviour {
+public class MoveToSiloBehaviour extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 8567689731496788661L;
 
-	private boolean finished = false;
-	private boolean treasureFound = false; // if a non-silo agent found a treasure in his location
-
 	private List<String> list_agentNames;
+	private boolean attainedDestination = false;
+	
 
 /**
  * 
@@ -38,13 +37,14 @@ public class ExplorationBehaviour extends OneShotBehaviour {
  * @param myMap known map of the world the agent is living in
  * @param agentNames name of the agents to share the map with
  */
-	public ExplorationBehaviour(final AbstractDedaleAgent myagent, List<String> agentNames) {
+	public MoveToSiloBehaviour(final AbstractDedaleAgent myagent, List<String> agentNames) {
 		super(myagent);
 		this.list_agentNames=agentNames;
 		
 		
 	}
 
+	// Resembles ExplorationBehaviour, but focused on reaching silo destination
 	@Override
 	public void action() {
 		//System.out.println(this.myAgent.getLocalName()+" : ExplorationBehaviour");
@@ -81,10 +81,12 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNodeId=null;
+			
 			Iterator<Couple<Location, List<Couple<Observation, String>>>> iter=lobs.iterator();
+			List<String> nodesWithTreasures = new ArrayList<String>();
 			while(iter.hasNext()){
-				Couple <Location, List<Couple<Observation, String>>> node = iter.next();
-				Location accessibleNode=node.getLeft();
+				Couple <Location, List<Couple<Observation, String>>> voisin = iter.next();
+				Location accessibleNode=voisin.getLeft();
 				for(String i : list_agentNames) {
 					boolean isNewNode=fsm.addNewNodeToMap(accessibleNode.getLocationId(), i);
 					//boolean isOpen=fsm.getMap(this.myAgent.getLocalName()).getOpenNodes().contains(accessibleNode.getLocationId());
@@ -95,71 +97,49 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 
 					if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 						fsm.addEdgeToMap(myPosition.getLocationId(), accessibleNode.getLocationId(), i);
-						if (i == this.myAgent.getLocalName() && nextNodeId==null && isNewNode) nextNodeId=accessibleNode.getLocationId();
-					} 
-				}
-				// If the agent found a treasure on his location, he add it to the list of located treasures
-				// That list will be used by agent when they need to go to a specific treasure
-				if (myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
-					List<Couple<Observation, String>> tresor = node.getRight();
-					//System.out.println(this.myAgent.getLocalName()+" : à ma position se trouve "+tresor);
-					if (!tresor.isEmpty()) {
-						// If the agent is not a silo, enable CollectBehaviour
-						if (!fsm.isAgentSilo()) {
-							this.treasureFound = true;
-							return;
-						}
-						fsm.getRecordedTreasures().put(myPosition.getLocationId(), tresor);
 					}
+				}
+				List<Couple<Observation, String>> tresors = voisin.getRight();
+				if (!tresors.isEmpty()) {
+					//System.out.println("Trésors du voisin : "+tresors);
+					nodesWithTreasures.add(accessibleNode.getLocationId());
 				}
 				
 			}
+			/*if (!nodesWithTreasures.isEmpty()) {
+				nextNodeId = nodesWithTreasures.getFirst();
+				this.treasureNearby = true;
+			}*/
 			
-
-			//3) while openNodes is not empty, continues.
-			//System.out.println(this.myAgent.getLocalName()+" : "+fsm.getMap(this.myAgent.getLocalName()).getOpenNodes());
-			if (!fsm.getMap(this.myAgent.getLocalName()).hasOpenNode()){
-				//Explo finished
-				finished=true;
-				//System.out.println(this.myAgent.getLocalName()+" - Exploration successfully done, behaviour removed.");
-			}else{
-				//4) select next move.
-				//4.1 If there exist one open node directly reachable, go for it,
-				//	 otherwise choose one from the openNode list, compute the shortestPath and go for it
-				if (nextNodeId==null){
-					// Calculation of path to shortest open node
-					List<String> path = fsm.getCurrentPath();
-					if (path.isEmpty()) {
-						path = fsm.getMap(this.myAgent.getLocalName()).getShortestPathToClosestOpenNode(myPosition.getLocationId());
-					}
-					System.out.println(this.myAgent.getLocalName()+" : path restant - "+path);
-					nextNodeId=path.remove(0);
-					fsm.setCurrentPath(path);
-					
-					// If the agent is the silo, update his clock with his destination
-					if (fsm.isAgentSilo()) {
-						Couple<Integer, String> currentDest = fsm.getSiloDestinationClock();
-						String destination = path.isEmpty()? nextNodeId : path.getLast();
-						fsm.updateSiloDestinationClock(new Couple<>(currentDest.getLeft()+1, destination));
-					}
-					
-					//System.out.println("     - Destination : "+path.getLast());
-					
-					//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
-				}else {
-					//System.out.println("nextNode notNUll - "+this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"\n -- nextNode: "+nextNode);
+			// Calculate path to silo destination
+			List<String> path = fsm.getCurrentPath();
+			if (path.isEmpty()) {
+				if (!fsm.isGoingToSilo()) {
+					String destination = fsm.getSiloDestinationClock().getRight();
+					path = fsm.getMap(this.myAgent.getLocalName()).getShortestPath(myPosition.getLocationId(), destination);
+					fsm.setGoingToSilo(true);
+				} else {
+					this.attainedDestination = true;
+					fsm.setGoingToSilo(false);
 				}
-				//System.out.println("     - Next Node : "+nextNodeId);
-				((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId));
 			}
+			System.out.println(this.myAgent.getLocalName()+" : path restant - "+path);
+			nextNodeId=path.remove(0);
+			fsm.setCurrentPath(path);
+			
+			//System.out.println("     - Destination : "+path.getLast());
+			
+			//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
+			
+			//System.out.println("     - Next Node : "+nextNodeId);
+			((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId));
 
 		}
 	}
 	
 	@Override
 	public int onEnd() {
-		if (finished) return 8; 			// END
-		if (treasureFound) return 9;//9;	// COLLECT
-		return 0; 							// MESSAGE
+		if (this.attainedDestination) return 11;
+		return 12;
 	}	
 }

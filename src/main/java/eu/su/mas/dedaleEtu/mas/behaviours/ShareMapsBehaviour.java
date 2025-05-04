@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
+import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
@@ -49,8 +51,37 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 		//System.out.println(this.myAgent.getLocalName()+" vs "+receiver);
 		
 		this.myAgent.doWait(100);
+
+		// Before exchanging maps, try exchange known silo position
+		ACLMessage pos_msg = new ACLMessage(ACLMessage.INFORM);
+		pos_msg.setProtocol("SHARE-POS");
+		pos_msg.setSender(this.myAgent.getAID());
+		pos_msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
 		
+		Couple<Integer, String> pair = fsm.getSiloDestinationClock();
+		try {
+			pos_msg.setContentObject(pair);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
+		MessageTemplate pos_template =MessageTemplate.and(
+				MessageTemplate.MatchProtocol("SHARE-POS"),
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage posReceived = this.myAgent.receive(pos_template);
+		
+		if (posReceived != null) {
+			try {
+				fsm.updateSiloDestinationClock((Couple<Integer, String> ) posReceived.getContentObject());
+				if (!fsm.isAgentSilo() && ((ExploreCoopAgent) this.myAgent).backpackIsNotEmpty()) {
+					fsm.setLearnedSiloPosition(true);
+				}
+			} catch (UnreadableException e) {
+				e.printStackTrace();
+			}
+		}
+					
+		// Now, exchange maps
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 		msg.setProtocol("SHARE-TOPO");
 		msg.setSender(this.myAgent.getAID());
@@ -86,7 +117,9 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 	
 	@Override
 	public int onEnd() {
-		return 7;
+		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		if (fsm.hasLearnedSiloPosition()) return 14; 	//MOVE_TO_SILO
+		return 7; 										// EXPLO
 	}
 
 }

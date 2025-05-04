@@ -51,7 +51,7 @@ public class MessageBehaviour extends OneShotBehaviour {
 		}
 		
 		if (fsm.hasSentPing()) {
-			this.transition = 1; // EXPLO
+			this.transition = fsm.isGoingToSilo() ? 13 : 1; // MOVE_TO_SILO or EXPLO
 			fsm.setPingSent(false);
 			return;
 		}

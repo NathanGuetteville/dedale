@@ -1,8 +1,11 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -12,14 +15,26 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 	
 	private static final long serialVersionUID = -568863670879327961L;
 	
+	private boolean agentIsSilo; // If the agent is the silo
+	
 	private List<String> list_agentNames;
 	private HashMap<String,MapRepresentation> allMaps;
 	private String currentInterlocutor = null;
-	private boolean pingSent = false;
 	
-	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames) {
+	private boolean pingSent = false;
+
+	private List<String> currentPath = new ArrayList<String>(); // Current calculated path, to open node, destination of silo, or treasure location (soon)
+	private Couple<Integer, String> siloDestinationClock = new Couple<>(0, ""); // Knowledge of the destination of the silo
+	
+	private boolean goingToSilo = false; // if the agent is in search of the silo
+	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
+	
+	private HashMap<String, List<Couple<Observation, String>>> recordedTreasures = new HashMap<>(); // (NodeId, content of the treasure), information currently accumulated but not used
+	
+	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames, boolean agentIsSilo) {
 		super(a);
 		this.list_agentNames = agentNames;
+		this.setAgentIsSilo(agentIsSilo);
 	}
 	
 	public boolean hasSentPing() {
@@ -78,6 +93,55 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 
 	public void setCurrentInterlocutor(String currentInterlocutor) {
 		this.currentInterlocutor = currentInterlocutor;
+	}
+	
+	public List<String> getCurrentPath() {
+		return currentPath;
+	}
+
+	public void setCurrentPath(List<String> currentPath) {
+		this.currentPath = currentPath;
+	}
+
+	public Couple<Integer, String> getSiloDestinationClock() {
+		return siloDestinationClock;
+	}
+
+	public void updateSiloDestinationClock(Couple<Integer, String> newSiloDestinationClock) {
+		if (newSiloDestinationClock.getLeft() > this.siloDestinationClock.getLeft())
+			this.siloDestinationClock = newSiloDestinationClock;
+	}
+
+	public boolean isAgentSilo() {
+		return agentIsSilo;
+	}
+
+	public void setAgentIsSilo(boolean agentIsSilo) {
+		this.agentIsSilo = agentIsSilo;
+	}
+
+	public boolean isGoingToSilo() {
+		return goingToSilo;
+	}
+
+	public void setGoingToSilo(boolean goingToSilo) {
+		this.goingToSilo = goingToSilo;
+	}
+
+	public boolean hasLearnedSiloPosition() {
+		return learnedSiloPosition;
+	}
+
+	public void setLearnedSiloPosition(boolean learnedSiloPosition) {
+		this.learnedSiloPosition = learnedSiloPosition;
+	}
+
+	public HashMap<String, List<Couple<Observation, String>>> getRecordedTreasures() {
+		return recordedTreasures;
+	}
+
+	public void setRecordedTreasures(HashMap<String, List<Couple<Observation, String>>> recordedTreasures) {
+		this.recordedTreasures = recordedTreasures;
 	}
 	
 }
