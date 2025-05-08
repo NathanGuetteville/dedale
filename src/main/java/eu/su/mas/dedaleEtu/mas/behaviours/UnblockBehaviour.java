@@ -66,10 +66,10 @@ public class UnblockBehaviour extends OneShotBehaviour {
 				Couple<Integer, Location> content = (Couple<Integer,Location>)blkReceived.getContentObject();
 				if(priority > content.getLeft()) {
 					if(fsm.getBlockedFromExplo()) {
-						this.transition = 17;
+						this.transition = 23;
 					}
 					else {
-						this.transition = 18;
+						this.transition = 24;
 					}
 					return;
 				}
