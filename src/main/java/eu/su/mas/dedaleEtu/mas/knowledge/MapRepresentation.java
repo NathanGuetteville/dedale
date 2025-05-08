@@ -2,9 +2,12 @@ package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,6 +26,7 @@ import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 import javafx.application.Platform;
 
 /**
@@ -128,6 +132,19 @@ public class MapRepresentation implements Serializable {
 
 		}
 	}
+	
+	public synchronized List<String> getNodesWithMaxDegree() {
+		return this.g.nodes()
+	            .collect(Collectors.groupingBy(Node::getDegree))
+	            .entrySet().stream()
+	            .max(Map.Entry.comparingByKey())
+	            .map(entry -> entry.getValue().stream()
+	                    .map(Node::getId)
+	                    .collect(Collectors.toList()))
+	            .orElse(Collections.emptyList());
+	}
+	
+	
 
 	/**
 	 * Compute the shortest Path from idFrom to IdTo. The computation is currently not very efficient
@@ -172,6 +189,37 @@ public class MapRepresentation implements Serializable {
 		//3) Compute shorterPath
 
 		return getShortestPath(myPosition,closest.get().getLeft());
+	}
+	
+	public List<String> getShortestPathToClosestMaxDegreeNode(String myPosition) {
+	    Map<String, Integer> nodeDegrees = this.g.nodes()
+	        .collect(Collectors.toMap(Node::getId, Node::getDegree));
+
+	    int maxDegree = nodeDegrees.values().stream().max(Integer::compareTo).orElse(-1);
+
+	    List<String> maxDegreeNodes = nodeDegrees.entrySet().stream()
+	        .filter(e -> e.getValue() == maxDegree)
+	        .map(Map.Entry::getKey)
+	        .collect(Collectors.toList());
+
+	    List<Couple<String, List<String>>> paths = maxDegreeNodes.stream()
+	        .map(nodeId -> new Couple<>(nodeId, getShortestPath(myPosition, nodeId)))
+	        .filter(c -> c.getRight() != null)
+	        .collect(Collectors.toList());
+
+	    Optional<Couple<String, List<String>>> closest = paths.stream()
+	        .min(Comparator.comparing(c -> c.getRight().size()));
+
+	    return closest.map(Couple::getRight).orElse(Collections.emptyList());
+	}
+	
+	public List<String> getShortestPathToClosestTreasure(String myPosition, HashMap<String, List<Couple<Observation, String>>> recordedTreasures) {
+	    return recordedTreasures.keySet().stream()
+	        .map(nodeId -> new Couple<>(nodeId, getShortestPath(myPosition, nodeId)))
+	        .filter(c -> c.getRight() != null)
+	        .min(Comparator.comparing(c -> c.getRight().size()))
+	        .map(Couple::getRight)
+	        .orElse(Collections.emptyList());
 	}
 
 

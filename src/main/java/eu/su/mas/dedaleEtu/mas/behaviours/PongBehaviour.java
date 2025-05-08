@@ -1,7 +1,5 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.List;
-
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.AID;
 import jade.core.behaviours.OneShotBehaviour;
@@ -22,8 +20,8 @@ public class PongBehaviour extends OneShotBehaviour{
 	
 	@Override
 	public void action() {
-		//System.out.println(this.myAgent.getLocalName()+" : PongBehaviour");
-		receiver = ((FSMCoopBehaviour) getParent()).getCurrentInterlocutor();
+		System.out.println(this.myAgent.getLocalName()+" : PongBehaviour");
+		receiver = ((MyFSMBehaviour) getParent()).getCurrentInterlocutor();
 		if (receiver == null || receiver.equals(this.myAgent.getLocalName())) return;
 		
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);

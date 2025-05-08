@@ -6,28 +6,33 @@ import java.util.List;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import jade.core.behaviours.FSMBehaviour;
+import eu.su.mas.dedaleEtu.mas.utils.HelpNeededForTreasure;
 
-public class FSMCoopBehaviour extends FSMBehaviour {
+public class FSMCoopBehaviour extends MyFSMBehaviour {
 	
 	private static final long serialVersionUID = -568863670879327961L;
 	
-	private List<String> list_agentNames;
 	private HashMap<String,MapRepresentation> allMaps;
-	private String currentInterlocutor = null;
-	private boolean pingSent = false;
 	
-	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames) {
-		super(a);
-		this.list_agentNames = agentNames;
-	}
+	private boolean goingToSilo = false; // if the agent is in search of the silo
+	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
+	private boolean blocked = false; // if the agent is blocked
+	private boolean blockedFromExplo = false;
 	
-	public boolean hasSentPing() {
-		return pingSent;
-	}
-
-	public void setPingSent(boolean pingSent) {
-		this.pingSent = pingSent;
+	private String blockingNeighbor = null;
+	
+	private boolean goingToTreasure = false;
+	private boolean exploFinished = false;
+	private boolean allFinished = false;
+		
+	private HelpNeededForTreasure helpNeeded = null;
+	private boolean leader = false;
+	
+	private final int priority;
+	
+	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames, int priority) {
+		super(a, agentNames);
+		this.priority = priority;
 	}
 
 	public HashMap<String, MapRepresentation> getAllMaps() {
@@ -40,7 +45,7 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 	
 	public void initAllMaps() {
 		this.allMaps = new HashMap<String, MapRepresentation>();
-		for(String name : this.list_agentNames) {
+		for(String name : super.list_agentNames) {
 			System.out.println(name);
 			if (name.equals(this.myAgent.getLocalName())) {
 				this.allMaps.put(name, new MapRepresentation(true));
@@ -72,12 +77,88 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 		this.allMaps.put(name, new MapRepresentation(false));
 	}
 
-	public String getCurrentInterlocutor() {
-		return currentInterlocutor;
+	public boolean isGoingToSilo() {
+		return goingToSilo;
 	}
 
-	public void setCurrentInterlocutor(String currentInterlocutor) {
-		this.currentInterlocutor = currentInterlocutor;
+	public void setGoingToSilo(boolean goingToSilo) {
+		this.goingToSilo = goingToSilo;
+	}
+
+	public boolean hasLearnedSiloPosition() {
+		return learnedSiloPosition;
+	}
+
+	public void setLearnedSiloPosition(boolean learnedSiloPosition) {
+		this.learnedSiloPosition = learnedSiloPosition;
+	}
+
+	public HelpNeededForTreasure getHelpNeeded() {
+		return helpNeeded;
+	}
+
+	public void setHelpNeeded(HelpNeededForTreasure helpNeeded) {
+		this.helpNeeded = helpNeeded;
+	}
+
+	public boolean isGoingToTreasure() {
+		return goingToTreasure;
+	}
+
+	public void setGoingToTreasure(boolean goingToTreasure) {
+		this.goingToTreasure = goingToTreasure;
+	}
+
+	public boolean isLeader() {
+		return leader;
+	}
+
+	public void setLeader(boolean leader) {
+		this.leader = leader;
+	}
+
+	public boolean isExploFinished() {
+		return exploFinished;
+	}
+
+	public void setExploFinished(boolean exploFinished) {
+		this.exploFinished = exploFinished;
+	}
+
+	public boolean isAllFinished() {
+		return allFinished;
+	}
+
+	public void setAllFinished(boolean allFinished) {
+		this.allFinished = allFinished;
+	}
+	
+	public boolean getBlocked() {
+		return this.blocked;
+	}
+	
+	public void setBlocked(boolean b) {
+		this.blocked = b;
+	}
+	
+	public String getBlockingNeighbor() {
+		return this.blockingNeighbor;
+	}
+	
+	public void setBlockingNeighbor(String blockingNeighbor) {
+		this.blockingNeighbor = blockingNeighbor;
+	}
+	
+	public int getPriority() {
+		return this.priority;
+	}
+	
+	public void setBlockedFromExplo(boolean b) {
+		this.blockedFromExplo = b;
+	}
+	
+	public boolean getBlockedFromExplo() {
+		return this.blockedFromExplo;
 	}
 	
 }
