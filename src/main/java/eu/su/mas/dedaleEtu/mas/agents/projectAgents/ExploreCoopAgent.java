@@ -17,6 +17,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ExplorationBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.FSMCoopBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MoveToSiloBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.MoveToTreasureBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PongBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapsBehaviour;
@@ -60,6 +61,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	private static final String END = "End";
 	private static final String COLLECT = "Collect";
 	private static final String MOVE_TO_SILO = "Move to Silo";
+	private static final String MOVE_TO_TREASURE = "Move to Treasure";
 	
 
 	/**
@@ -112,6 +114,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerState(new ShareMapsBehaviour(this), SHARE);
 		fsm.registerState(new CollectBehaviour(this), COLLECT);
 		fsm.registerState(new MoveToSiloBehaviour(this, list_agentNames), MOVE_TO_SILO);
+		fsm.registerState(new MoveToTreasureBehaviour(this, list_agentNames), MOVE_TO_TREASURE);
 		fsm.registerLastState(new EndFSMBehaviour(), END);
 		
 		//FSM Transitions
@@ -123,7 +126,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(PING, MESS, 5);
 		fsm.registerTransition(PONG, SHARE, 6);
 		fsm.registerTransition(SHARE, EXPLO, 7);
-		fsm.registerTransition(EXPLO, END, 8);
+		fsm.registerTransition(EXPLO, MOVE_TO_TREASURE, 8);
 		fsm.registerTransition(EXPLO, COLLECT, 9);
 		fsm.registerTransition(COLLECT, MESS, 10);
 		fsm.registerTransition(MOVE_TO_SILO, EXPLO, 11);
@@ -131,6 +134,13 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(MESS, MOVE_TO_SILO, 13);
 		fsm.registerTransition(SHARE, MOVE_TO_SILO, 14);
 		fsm.registerTransition(COLLECT, EXPLO, 15);
+		fsm.registerTransition(SHARE, MOVE_TO_TREASURE, 16);
+		fsm.registerTransition(MOVE_TO_TREASURE, COLLECT, 17);
+		fsm.registerTransition(MOVE_TO_TREASURE, EXPLO, 18);
+		fsm.registerTransition(MOVE_TO_TREASURE, MESS, 19);
+		fsm.registerTransition(MESS, MOVE_TO_TREASURE, 20);
+		fsm.registerTransition(COLLECT, END, 21);
+		
 		
 		lb.add(fsm);
 

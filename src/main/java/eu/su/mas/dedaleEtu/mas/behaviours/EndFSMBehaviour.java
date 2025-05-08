@@ -9,6 +9,7 @@ public class EndFSMBehaviour extends OneShotBehaviour {
 	@Override
 	public void action() {
 		System.out.println(this.myAgent.getLocalName()+" - Exploration successfully done, end FSM.");
+		this.myAgent.doDelete();
 	}
 
 }

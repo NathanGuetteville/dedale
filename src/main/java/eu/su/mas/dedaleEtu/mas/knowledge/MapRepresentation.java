@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 import javafx.application.Platform;
 
 /**
@@ -209,6 +211,15 @@ public class MapRepresentation implements Serializable {
 	        .min(Comparator.comparing(c -> c.getRight().size()));
 
 	    return closest.map(Couple::getRight).orElse(Collections.emptyList());
+	}
+	
+	public List<String> getShortestPathToClosestTreasure(String myPosition, HashMap<String, List<Couple<Observation, String>>> recordedTreasures) {
+	    return recordedTreasures.keySet().stream()
+	        .map(nodeId -> new Couple<>(nodeId, getShortestPath(myPosition, nodeId)))
+	        .filter(c -> c.getRight() != null)
+	        .min(Comparator.comparing(c -> c.getRight().size()))
+	        .map(Couple::getRight)
+	        .orElse(Collections.emptyList());
 	}
 
 

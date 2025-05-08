@@ -20,8 +20,13 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	
 	private boolean goingToSilo = false; // if the agent is in search of the silo
 	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
+	
+	private boolean goingToTreasure = false;
+	private boolean exploFinished = false;
+	private boolean allFinished = false;
 		
 	private HelpNeededForTreasure helpNeeded = null;
+	private boolean leader = false;
 	
 	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames) {
 		super(a, agentNames);
@@ -91,6 +96,38 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 
 	public void setHelpNeeded(HelpNeededForTreasure helpNeeded) {
 		this.helpNeeded = helpNeeded;
+	}
+
+	public boolean isGoingToTreasure() {
+		return goingToTreasure;
+	}
+
+	public void setGoingToTreasure(boolean goingToTreasure) {
+		this.goingToTreasure = goingToTreasure;
+	}
+
+	public boolean isLeader() {
+		return leader;
+	}
+
+	public void setLeader(boolean leader) {
+		this.leader = leader;
+	}
+
+	public boolean isExploFinished() {
+		return exploFinished;
+	}
+
+	public void setExploFinished(boolean exploFinished) {
+		this.exploFinished = exploFinished;
+	}
+
+	public boolean isAllFinished() {
+		return allFinished;
+	}
+
+	public void setAllFinished(boolean allFinished) {
+		this.allFinished = allFinished;
 	}
 	
 }

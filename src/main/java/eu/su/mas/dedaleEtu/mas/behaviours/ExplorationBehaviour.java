@@ -115,6 +115,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 				if (!fsm.getMap(this.myAgent.getLocalName()).hasOpenNode()){
 					//Explo finished
 					finished=true;
+					fsm.setExploFinished(true);
 					//System.out.println(this.myAgent.getLocalName()+" - Exploration successfully done, behaviour removed.");
 				}else{
 					//4) select next move.
@@ -147,7 +148,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 	
 	@Override
 	public int onEnd() {
-		if (finished) return 8; 			// END
+		if (finished) return 8; 			// MOVE_TO_TREASURE
 		if (treasureFound) return 9;//9;	// COLLECT
 		return 0; 							// MESSAGE
 	}	

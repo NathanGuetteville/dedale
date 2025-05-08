@@ -35,40 +35,46 @@ public class CollectBehaviour extends OneShotBehaviour {
 		List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
 		List<Couple<Observation,String>> tresor= TreasureUtils.getTreasureFromLocation(lobs, myPosition);
 		
+		Observation myTreasureType = ((AbstractDedaleAgent) this.myAgent).getMyTreasureType();
 		
-		HelpNeededForTreasure hnft = new HelpNeededForTreasure(lobs.get(0).getLeft().getLocationId());
+		HelpNeededForTreasure hnft = new HelpNeededForTreasure(lobs.get(0).getLeft().getLocationId(), myTreasureType);
 		
 		Observation treasureType = TreasureUtils.treasureType(tresor);
 		System.out.println(this.myAgent.getLocalName()+" : I try to collect "+tresor+" at position "+myPosition.getLocationId());
-		Observation myTreasureType = ((AbstractDedaleAgent) this.myAgent).getMyTreasureType();
 		
 		boolean sameTypes = treasureType.equals(myTreasureType);
-		if (!sameTypes) {
-			// Search for agent with the adequate type
-			//hnft.activate();
-			hnft.setTreasureType(treasureType);
+		if (sameTypes) {
+			hnft.setMyFreeSpace(((ExploreCoopAgent) this.myAgent).getBackPackFreeSpaceFor(treasureType));
 		}
+		
+		// Search for agent with the adequate type
+		hnft.setTreasureType(treasureType);
+		
 		
 		boolean openLockSuccess = ((AbstractDedaleAgent) this.myAgent).openLock(myTreasureType);
 		if (!openLockSuccess) {
 			// Search for more lockpicking power
-			//hnft.activate();
-			hnft.setLockpicking(TreasureUtils.getTreasureLockPicking(tresor));
+			int lockpickingAsked = TreasureUtils.getTreasureLockPicking(tresor);
+			int myLockpicking = ((ExploreCoopAgent )this.myAgent).getExpertiseIn(Observation.LOCKPICKING);
+			hnft.setLockpicking(lockpickingAsked - myLockpicking);
+			
 		}
 		
 		int amount = ((AbstractDedaleAgent) this.myAgent).pick();
 		if (amount == 0) { // The agent couldn't pick up the treasure
 			if (sameTypes && openLockSuccess) {
 				// Not enough Strength, look for more
-				//hnft.activate();
-				hnft.setStrength(TreasureUtils.getTreasureStrength(tresor));
+				int strengthAsked = TreasureUtils.getTreasureStrength(tresor);
+				int myStrength = ((ExploreCoopAgent) this.myAgent).getExpertiseIn(Observation.STRENGH);
+				hnft.setStrength(strengthAsked-myStrength);
 			}
 			fsm.setHelpNeeded(hnft);
 		} else { // The agent did pick up some of the treasure
 			List<Couple<Observation,String>> tresor_post = ((AbstractDedaleAgent)this.myAgent).observe().get(0).getRight();
-			if (TreasureUtils.treasureContainsNoRessources(tresor_post)) { 	// He took everything
+			if (TreasureUtils.treasureContainsNoRessources(tresor_post)) {
 				fsm.getRecordedTreasures().remove(myPosition.getLocationId());
-			} else { 														// He took part of it
+				if (fsm.isExploFinished() && fsm.getRecordedTreasures().isEmpty()) fsm.setAllFinished(true);
+			} else {
 				fsm.getRecordedTreasures().put(myPosition.getLocationId(), tresor_post);
 			}
 		}
@@ -97,8 +103,8 @@ public class CollectBehaviour extends OneShotBehaviour {
 	@Override
 	public int onEnd() {
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		if (fsm.isAllFinished()) return 21; // END
 		if (fsm.getHelpNeeded()!=null || !fsm.hasLearnedSiloPosition()) return 15;		// EXPLO
-		System.out.println(this.myAgent.getLocalName()+" : I collected something, let's go to the silo");
 		return 10; 					// MESS then MOVE_TO_SILO
 	}	
 
