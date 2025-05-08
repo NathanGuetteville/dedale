@@ -2,14 +2,10 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
 
-
-import java.util.HashMap;
-
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
 import jade.core.behaviours.OneShotBehaviour;
@@ -17,11 +13,11 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class ShareMapsBehaviour extends OneShotBehaviour{
+public class ShareSiloBehaviour extends OneShotBehaviour{
 
 	private String receiver = null;
 
-	public ShareMapsBehaviour(AbstractDedaleAgent a) {
+	public ShareSiloBehaviour(AbstractDedaleAgent a) {
 		super(a);
 	}
 
@@ -30,7 +26,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 	@Override
 	public void action() {
 		System.out.println(this.myAgent.getLocalName()+" : ShareMapsBehaviour");
-		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		FSMSiloBehaviour fsm = ((FSMSiloBehaviour) getParent());
 		receiver = fsm.getCurrentInterlocutor();
 		if (receiver == null) return;
 		
@@ -60,9 +56,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 		if (posReceived != null) {
 			try {
 				fsm.updateSiloDestinationClock((Couple<Integer, String> ) posReceived.getContentObject());
-				if (((ExploreCoopAgent) this.myAgent).backpackIsNotEmpty()) {
-					fsm.setLearnedSiloPosition(true);
-				}
+
 			} catch (UnreadableException e) {
 				e.printStackTrace();
 			}
@@ -74,14 +68,13 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 		msg.setSender(this.myAgent.getAID());
 		msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
 			
-		SerializableSimpleGraph<String, MapAttribute> sg=fsm.getMap(receiver).getSerializableGraph();
+		SerializableSimpleGraph<String, MapAttribute> sg=fsm.getMap().getSerializableGraph();
 		try {					
 			msg.setContentObject(sg);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-		fsm.resetMap(receiver);
 		
 		MessageTemplate msgTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("SHARE-TOPO"),
@@ -96,17 +89,27 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			fsm.getMap(this.myAgent.getLocalName()).mergeMap(sgreceived);
+			fsm.getMap().mergeMap(sgreceived);
 			fsm.setCurrentInterlocutor(null);
+			
+			String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
+			String destination = fsm.getMap().getNodeWithMaxDegree();
+			if (!destination.equals(myPosition)) {
+				fsm.setStayingPut(false);
+				fsm.setCurrentPath(fsm.getMap().getShortestPath(myPosition, destination));
+				Couple<Integer, String> currentDest = fsm.getSiloDestinationClock();
+				fsm.updateSiloDestinationClock(new Couple<>(currentDest.getLeft()+1, destination));
+
+			}
 		}
 		
 	}
 	
 	@Override
 	public int onEnd() {
-		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
-		if (fsm.hasLearnedSiloPosition()) return 14; 	//MOVE_TO_SILO
-		return 7; 										// EXPLO
+		FSMSiloBehaviour fsm = ((FSMSiloBehaviour) getParent());
+		if (fsm.isStayingPut()) return 9; 	// MOVE_SILO
+		return 7; 							// MESS
 	}
 
 }

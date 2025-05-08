@@ -9,10 +9,14 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.StartMyBehaviours
 import eu.su.mas.dedaleEtu.mas.behaviours.EndFSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExplorationBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.FSMCoopBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.FSMSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.MessageSiloBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.MoveSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PongBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapsBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ShareSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 
@@ -21,12 +25,11 @@ public class SiloAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = -7969469610241668140L;
 	private HashMap<String,MapRepresentation> myMaps;
 	
-	private static final String EXPLO = "Explo";
-	private static final String MESS = "Mess";
+	private static final String MOVE = "Move Silo";
+	private static final String MESS = "Mess Silo";
 	private static final String PING = "Ping";
 	private static final String PONG = "Pong";
-	private static final String SHARE = "Share";
-	private static final String END = "End";
+	private static final String SHARE = "Share Silo";
 	
 
 	/**
@@ -68,25 +71,25 @@ public class SiloAgent extends AbstractDedaleAgent {
 		 * 
 		 ************************************************/
 		
-		FSMCoopBehaviour fsm = new FSMCoopBehaviour(this, list_agentNames, true);
+		FSMSiloBehaviour fsm = new FSMSiloBehaviour(this, list_agentNames);
 		//FSM States
-		fsm.registerFirstState(new ExplorationBehaviour(this, list_agentNames), EXPLO);
-		fsm.registerState(new MessageBehaviour(this), MESS);
+		fsm.registerFirstState(new MessageSiloBehaviour(this), MESS);
+		fsm.registerState(new MoveSiloBehaviour(), MOVE);
 		fsm.registerState(new PingBehaviour(this, list_agentNames), PING);
 		fsm.registerState(new PongBehaviour(this), PONG);
-		fsm.registerState(new ShareMapsBehaviour(this), SHARE);
-		fsm.registerLastState(new EndFSMBehaviour(), END);
+		fsm.registerState(new ShareSiloBehaviour(this), SHARE);
 		
 		//FSM Transitions
-		fsm.registerTransition(EXPLO, MESS, 0);
-		fsm.registerTransition(MESS, EXPLO, 1);
+		fsm.registerTransition(MOVE, MESS, 0);
+		fsm.registerTransition(MESS, MOVE, 1);
 		fsm.registerTransition(MESS, PING, 2);
 		fsm.registerTransition(MESS, PONG, 3);
 		fsm.registerTransition(MESS, SHARE, 4);
 		fsm.registerTransition(PING, MESS, 5);
 		fsm.registerTransition(PONG, SHARE, 6);
-		fsm.registerTransition(SHARE, EXPLO, 7);
-		fsm.registerTransition(EXPLO, END, 8);
+		fsm.registerTransition(SHARE, MESS, 7);
+		fsm.registerTransition(SHARE, MOVE, 9);
+		fsm.registerTransition(MESS, MESS, 10);
 		
 		lb.add(fsm);
 

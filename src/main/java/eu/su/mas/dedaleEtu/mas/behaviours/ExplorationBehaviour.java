@@ -66,7 +66,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 			Couple<String, Boolean> lastMove = fsm.getLastMoveSuccess();
 			String nextNodeId=null;
 			if (lastMove != null && !lastMove.getRight()) {
-				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again");
+				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
 				nextNodeId = lastMove.getLeft();
 			} else {
 				//List of observable from the agent's current position
@@ -117,10 +117,8 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 					// If the agent is not a silo, enable CollectBehaviour
 					System.out.println(this.myAgent.getLocalName()+" : trésor repéré dans explo "+tresor+ " à la position "+myPosition.getLocationId());
 					fsm.getRecordedTreasures().put(myPosition.getLocationId(), tresor);
-					if (!fsm.isAgentSilo()) {
-						this.treasureFound = true;
-						return;
-					}
+					this.treasureFound = true;
+					return;
 				}
 				
 	
@@ -145,13 +143,6 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 						nextNodeId=path.remove(0);
 						fsm.setCurrentPath(path);
 						
-						// If the agent is the silo, update his clock with his destination
-						if (fsm.isAgentSilo()) {
-							Couple<Integer, String> currentDest = fsm.getSiloDestinationClock();
-							String destination = path.isEmpty()? nextNodeId : path.getLast();
-							fsm.updateSiloDestinationClock(new Couple<>(currentDest.getLeft()+1, destination));
-						}
-						
 						//System.out.println("     - Destination : "+path.getLast());
 						
 						//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
@@ -162,9 +153,9 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 				//System.out.println("     - Next Node : "+nextNodeId);
 				fsm.setLastMoveSuccess(new Couple<>(nextNodeId, ((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId))));
 			}
-
 		}
 	}
+
 	
 	@Override
 	public int onEnd() {

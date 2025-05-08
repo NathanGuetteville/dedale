@@ -128,6 +128,13 @@ public class MapRepresentation implements Serializable {
 
 		}
 	}
+	
+	public synchronized String getNodeWithMaxDegree() {
+		return this.g.nodes()
+	            .max(Comparator.comparingInt(Node::getDegree))
+	            .map(Node::getId)
+	            .orElse(null);
+	}
 
 	/**
 	 * Compute the shortest Path from idFrom to IdTo. The computation is currently not very efficient

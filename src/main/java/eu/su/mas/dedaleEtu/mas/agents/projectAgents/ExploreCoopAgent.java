@@ -101,7 +101,9 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		 * 
 		 ************************************************/
 		
-		FSMCoopBehaviour fsm = new FSMCoopBehaviour(this, list_agentNames, false);
+		System.out.println("initialisation des agents : "+list_agentNames);
+		
+		FSMCoopBehaviour fsm = new FSMCoopBehaviour(this, list_agentNames);
 		//FSM States
 		fsm.registerFirstState(new ExplorationBehaviour(this, list_agentNames), EXPLO);
 		fsm.registerState(new MessageBehaviour(this), MESS);

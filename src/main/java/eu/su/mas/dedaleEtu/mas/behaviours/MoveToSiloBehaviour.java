@@ -72,7 +72,7 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 			Couple<String, Boolean> lastMove = fsm.getLastMoveSuccess();
 			String nextNodeId=null;
 			if (lastMove != null && !lastMove.getRight()) {
-				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again");
+				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
 				nextNodeId = lastMove.getLeft();
 			} else {
 			

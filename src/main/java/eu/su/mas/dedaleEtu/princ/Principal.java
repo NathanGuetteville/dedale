@@ -444,7 +444,7 @@ public class Principal {
 		agentName="Tim";
 
 		//3) If you want to give specific parameters to your agent, add them here
-		Object [] entityParametersC={"My parameters"};
+		Object [] entityParametersC={"Elsa", "Tank"};
 
 		//4) Give the class name of your agent to let the system instantiate it
 		ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent.class.getName(), entityParametersC);
@@ -458,7 +458,7 @@ public class Principal {
 		agentName="Elsa";
 
 		//3) If you want to give specific parameters to your agent, add them here
-		Object [] entityParametersC2={"My parameters"};
+		Object [] entityParametersC2={"Tim", "Tank"};
 
 		//4) Give the class name of your agent to let the system instantiate it
 		ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent.class.getName(), entityParametersC2);
@@ -531,7 +531,7 @@ public class Principal {
 		agentName="Tank";
 //
 //		//3) If you want to give specific parameters to your agent, add them here
-		Object [] entityParametersT={"My parameters"};
+		Object [] entityParametersT={"Tim", "Elsa"};
 //
 //		//4) Give the class name of your agent to let the system instantiate it
 		ag=createNewDedaleAgent(c, agentName, SiloAgent.class.getName(), entityParametersT);
