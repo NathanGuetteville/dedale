@@ -10,6 +10,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.EndFSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExplorationBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.FSMCoopBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.FSMSiloBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.UnblockSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MoveSiloBehaviour;
@@ -30,6 +31,9 @@ public class SiloAgent extends AbstractDedaleAgent {
 	private static final String PING = "Ping";
 	private static final String PONG = "Pong";
 	private static final String SHARE = "Share Silo";
+	private static final String UNBLOCK = "Unblock";
+	
+	private final int priorite = -1;
 	
 
 	/**
@@ -71,13 +75,14 @@ public class SiloAgent extends AbstractDedaleAgent {
 		 * 
 		 ************************************************/
 		
-		FSMSiloBehaviour fsm = new FSMSiloBehaviour(this, list_agentNames);
+		FSMSiloBehaviour fsm = new FSMSiloBehaviour(this, list_agentNames, this.priorite);
 		//FSM States
 		fsm.registerFirstState(new MessageSiloBehaviour(this), MESS);
-		fsm.registerState(new MoveSiloBehaviour(), MOVE);
+		fsm.registerState(new MoveSiloBehaviour(this, list_agentNames), MOVE);
 		fsm.registerState(new PingBehaviour(this, list_agentNames), PING);
 		fsm.registerState(new PongBehaviour(this), PONG);
 		fsm.registerState(new ShareSiloBehaviour(this), SHARE);
+		fsm.registerState(new UnblockSiloBehaviour(this), UNBLOCK);
 		
 		//FSM Transitions
 		fsm.registerTransition(MOVE, MESS, 0);
@@ -90,6 +95,9 @@ public class SiloAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(SHARE, MESS, 7);
 		fsm.registerTransition(SHARE, MOVE, 9);
 		fsm.registerTransition(MESS, MESS, 10);
+		fsm.registerTransition(MOVE, UNBLOCK, 11);
+		fsm.registerTransition(UNBLOCK, MOVE, 12);
+		
 		
 		lb.add(fsm);
 
@@ -108,6 +116,10 @@ public class SiloAgent extends AbstractDedaleAgent {
 	
 	public void setAllMaps(HashMap<String, MapRepresentation> allMaps) {
 		this.myMaps = allMaps;
+	}
+	
+	public int getPriorite() {
+		return this.priorite;
 	}
 	
 	
