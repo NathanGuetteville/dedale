@@ -30,6 +30,7 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 
 	private List<String> list_agentNames;
 	private boolean attainedDestination = false;
+	private boolean neighbor = false;
 	
 
 /**
@@ -50,6 +51,7 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 	public void action() {
 		System.out.println(this.myAgent.getLocalName()+" : MoveToSiloBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		this.neighbor = false;
 		if (fsm.getAllMaps() == null) {
 			fsm.initAllMaps();
 		}
@@ -74,7 +76,32 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 			if (lastMove != null && !lastMove.getRight()) {
 				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
 				nextNodeId = lastMove.getLeft();
-			} else {
+			} 
+			else if(lastMove != null && !lastMove.getRight()) {
+				//The two last moves failed. Try to communicate with neighbor.
+				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+				for(Couple<Location,List<Couple<Observation,String>>> loc : lobs) {
+					if(loc.getLeft().getLocationId().equals(nextNodeId)) { //Checking at the destination coordinate
+						for(Couple<Observation,String> obs : loc.getRight()) {
+							for(String name : this.list_agentNames) { //Checking for an agent neighbor
+								if(obs.getLeft().getName().equals(name)) {
+									neighbor = true;
+									fsm.setBlockingNeighbor(obs.getLeft().getName());
+								}
+							}
+						}
+					}
+				}
+				if(neighbor) { //Initiate communication with neighbor
+					fsm.setBlockedFromExplo(false);
+					return;
+				}
+				else { //Blocked by the Wumpus
+					Debug.warning(this.myAgent.getLocalName()+" : Last move failed because blocked by the Wumpus, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
+					nextNodeId = lastMove.getLeft();
+				}
+			}
+			else {
 			
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
