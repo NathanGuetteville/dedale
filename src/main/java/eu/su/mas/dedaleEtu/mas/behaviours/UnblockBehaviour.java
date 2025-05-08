@@ -80,10 +80,10 @@ public class UnblockBehaviour extends OneShotBehaviour {
 					moveId=1+r.nextInt(lobs.size()-1);
 				}
 				if(fsm.getBlockedFromExplo()) {
-					this.transition = 17;
+					this.transition = 23;
 				}
 				else {
-					this.transition = 18;
+					this.transition = 24;
 				}
 				((AbstractDedaleAgent)this.myAgent).moveTo(lobs.get(moveId).getLeft());
 				return;

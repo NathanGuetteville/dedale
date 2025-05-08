@@ -1,16 +1,12 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import dataStructures.tuple.Couple;
-import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.utils.HelpNeededForTreasure;
-import jade.core.behaviours.FSMBehaviour;
 
 public class FSMCoopBehaviour extends MyFSMBehaviour {
 	
@@ -24,8 +20,13 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	private boolean blockedFromExplo = false;
 	
 	private String blockingNeighbor = null;
+	
+	private boolean goingToTreasure = false;
+	private boolean exploFinished = false;
+	private boolean allFinished = false;
 		
 	private HelpNeededForTreasure helpNeeded = null;
+	private boolean leader = false;
 	
 	private final int priority;
 	
@@ -98,6 +99,38 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 
 	public void setHelpNeeded(HelpNeededForTreasure helpNeeded) {
 		this.helpNeeded = helpNeeded;
+	}
+
+	public boolean isGoingToTreasure() {
+		return goingToTreasure;
+	}
+
+	public void setGoingToTreasure(boolean goingToTreasure) {
+		this.goingToTreasure = goingToTreasure;
+	}
+
+	public boolean isLeader() {
+		return leader;
+	}
+
+	public void setLeader(boolean leader) {
+		this.leader = leader;
+	}
+
+	public boolean isExploFinished() {
+		return exploFinished;
+	}
+
+	public void setExploFinished(boolean exploFinished) {
+		this.exploFinished = exploFinished;
+	}
+
+	public boolean isAllFinished() {
+		return allFinished;
+	}
+
+	public void setAllFinished(boolean allFinished) {
+		this.allFinished = allFinished;
 	}
 	
 	public boolean getBlocked() {

@@ -27,13 +27,11 @@ public class MessageBehaviour extends OneShotBehaviour {
 			this.myAgent.doWait(500);
 		}
 		
-		System.out.println(this.myAgent.getLocalName()+" : trying to receive pong");
 		MessageTemplate pongTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PONG"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pongReceived=this.myAgent.receive(pongTemplate);
 		if (pongReceived!=null) {
-			System.out.println(this.myAgent.getLocalName()+" : pong successfully received");
 			String pongSender = pongReceived.getSender().getLocalName();
 			if (!pongSender.equals(this.myAgent.getLocalName())) {
 				this.transition = 4; // SHARE
@@ -44,13 +42,11 @@ public class MessageBehaviour extends OneShotBehaviour {
 			
 		}
 
-		System.out.println(this.myAgent.getLocalName()+" : trying to receive ping");
 		MessageTemplate pingTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PING"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pingReceived=this.myAgent.receive(pingTemplate);
 		if (pingReceived!=null) {
-			System.out.println(this.myAgent.getLocalName()+" : ping successfully received");
 			String pingSender = pingReceived.getSender().getLocalName();
 			if (!pingSender.equals(this.myAgent.getLocalName())) {
 				this.transition = 3; // PONG
@@ -61,7 +57,12 @@ public class MessageBehaviour extends OneShotBehaviour {
 		}
 		
 		if (fsm.hasSentPing()) {
-			this.transition = fsm.isGoingToSilo() ? 13 : 1; // MOVE_TO_SILO or EXPLO
+			if (fsm.isGoingToTreasure()) {
+				this.transition = 20;	// MOVE_TO_TREASURE
+			} else if (fsm.isGoingToSilo()) {
+				this.transition = 13;	// MOVE_TO_SILO
+			} else this.transition = 1; // EXPLO
+			
 			fsm.setPingSent(false);
 			return;
 		}

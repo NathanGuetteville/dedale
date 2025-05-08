@@ -4,16 +4,20 @@ import eu.su.mas.dedale.env.Observation;
 import java.io.Serializable;
 
 public class HelpNeededForTreasure implements Serializable {
+	
+	private static final long serialVersionUID = 241450461097585613L;
+	
 	private String locationId;
-	private int lockpicking;
-	private int strength;
+	private int lockpicking = 0;
+	private int strength = 0;
 	private Observation treasureType;
+	private Observation personalTreasureType;
+	private int myFreeSpace = 0;
 	
-	public HelpNeededForTreasure(String location) {
+	public HelpNeededForTreasure(String location, Observation type) {
 		this.locationId = location;
+		this.personalTreasureType = type;
 	}
-	
-	
 	public String getLocationId() {
 		return locationId;
 	}
@@ -37,6 +41,18 @@ public class HelpNeededForTreasure implements Serializable {
 	}
 	public void setTreasureType(Observation treasureType) {
 		this.treasureType = treasureType;
+	}
+	public Observation getPersonalTreasureType() {
+		return personalTreasureType;
+	}
+	public void setPersonalTreasureType(Observation personalTreasureType) {
+		this.personalTreasureType = personalTreasureType;
+	}
+	public int getMyFreeSpace() {
+		return myFreeSpace;
+	}
+	public void setMyFreeSpace(int myFreeSpace) {
+		this.myFreeSpace = myFreeSpace;
 	}
 	
 

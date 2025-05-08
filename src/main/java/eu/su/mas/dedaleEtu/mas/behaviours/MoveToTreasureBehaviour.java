@@ -9,13 +9,14 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.OneShotBehaviour;
-public class MoveToSiloBehaviour extends OneShotBehaviour {
 
-	private static final long serialVersionUID = 8567689731496788661L;
+public class MoveToTreasureBehaviour extends OneShotBehaviour {
+
+	private static final long serialVersionUID = 5921098062301802226L;
 
 	private List<String> list_agentNames;
 	private boolean attainedDestination = false;
-	private boolean neighbor = false;
+	private boolean leader;
 	
 
 /**
@@ -24,22 +25,21 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
  * @param myMap known map of the world the agent is living in
  * @param agentNames name of the agents to share the map with
  */
-	public MoveToSiloBehaviour(final AbstractDedaleAgent myagent, List<String> agentNames) {
+	public MoveToTreasureBehaviour(final AbstractDedaleAgent myagent, List<String> agentNames) {
 		super(myagent);
 		this.list_agentNames=agentNames;
 		
 		
 	}
 
-	// Resembles ExplorationBehaviour, but focused on reaching silo destination
+	// Resembles ExplorationBehaviour, but focused on reaching treasure destination
 	@Override
 	public void action() {
 		System.out.println(this.myAgent.getLocalName()+" : MoveToSiloBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
-		this.neighbor = false;
-		if (fsm.getAllMaps() == null) {
-			fsm.initAllMaps();
-		}
+		
+
+		this.leader = fsm.isLeader();
 		
 		
 		
@@ -61,32 +61,7 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 			if (lastMove != null && !lastMove.getRight()) {
 				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
 				nextNodeId = lastMove.getLeft();
-			} 
-			else if(lastMove != null && !lastMove.getRight()) {
-				//The two last moves failed. Try to communicate with neighbor.
-				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-				for(Couple<Location,List<Couple<Observation,String>>> loc : lobs) {
-					if(loc.getLeft().getLocationId().equals(nextNodeId)) { //Checking at the destination coordinate
-						for(Couple<Observation,String> obs : loc.getRight()) {
-							for(String name : this.list_agentNames) { //Checking for an agent neighbor
-								if(obs.getLeft().getName().equals(name)) {
-									neighbor = true;
-									fsm.setBlockingNeighbor(obs.getLeft().getName());
-								}
-							}
-						}
-					}
-				}
-				if(neighbor) { //Initiate communication with neighbor
-					fsm.setBlockedFromExplo(false);
-					return;
-				}
-				else { //Blocked by the Wumpus
-					Debug.warning(this.myAgent.getLocalName()+" : Last move failed because blocked by the Wumpus, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
-					nextNodeId = lastMove.getLeft();
-				}
-			}
-			else {
+			} else {
 			
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
@@ -95,21 +70,15 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 				// Calculate path to silo destination
 				List<String> path = fsm.getCurrentPath();
 				if (path.isEmpty()) {
-					if (!fsm.isGoingToSilo()) {
-						String destination = fsm.getSiloDestinationClock().getRight();
-						path = fsm.getMap(this.myAgent.getLocalName()).getShortestPath(myPosition.getLocationId(), destination);
-						fsm.setGoingToSilo(true);
+					if (!fsm.isGoingToTreasure()) {
+						// Select the closest attainable treasure
+						path = fsm.getMap(this.myAgent.getLocalName()).getShortestPathToClosestTreasure(myPosition.getLocationId(), fsm.getRecordedTreasures());
+						fsm.setGoingToTreasure(true);
 					} else {
 						this.attainedDestination = true;
-						fsm.setGoingToSilo(false);
-						boolean emptied = false;
-						for (String agent : this.list_agentNames) {
-							emptied = emptied || ((AbstractDedaleAgent) this.myAgent).emptyMyBackPack(agent);
-						}
-						if (!emptied) {
-							fsm.setLearnedSiloPosition(false);
-							fsm.updateSiloDestinationClock(new Couple<>(0, ""));
-						}
+						fsm.setGoingToTreasure(false);
+						fsm.setLeader(false);
+						
 					}
 				}
 				System.out.println(this.myAgent.getLocalName()+" : path restant - "+path);
@@ -129,7 +98,11 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 	
 	@Override
 	public int onEnd() {
-		if (this.attainedDestination) return 11; 	// EXPLO
-		return 12;									// MESS
-	}	
+		if (this.attainedDestination) {
+			if (this.leader) return 17;		// COLLECT
+			return 18;						// EXPLO
+		}
+		return 19;							// MESS
+	}
+
 }
