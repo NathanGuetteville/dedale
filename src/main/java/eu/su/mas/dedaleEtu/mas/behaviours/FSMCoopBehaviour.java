@@ -1,16 +1,12 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import dataStructures.tuple.Couple;
-import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.utils.HelpNeededForTreasure;
-import jade.core.behaviours.FSMBehaviour;
 
 public class FSMCoopBehaviour extends MyFSMBehaviour {
 	
@@ -20,6 +16,10 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	
 	private boolean goingToSilo = false; // if the agent is in search of the silo
 	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
+	private boolean blocked = false; // if the agent is blocked
+	private boolean blockedFromExplo = false;
+	
+	private String blockingNeighbor = null;
 	
 	private boolean goingToTreasure = false;
 	private boolean exploFinished = false;
@@ -28,8 +28,11 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	private HelpNeededForTreasure helpNeeded = null;
 	private boolean leader = false;
 	
-	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames) {
+	private final int priority;
+	
+	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames, int priority) {
 		super(a, agentNames);
+		this.priority = priority;
 	}
 
 	public HashMap<String, MapRepresentation> getAllMaps() {
@@ -128,6 +131,34 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 
 	public void setAllFinished(boolean allFinished) {
 		this.allFinished = allFinished;
+	}
+	
+	public boolean getBlocked() {
+		return this.blocked;
+	}
+	
+	public void setBlocked(boolean b) {
+		this.blocked = b;
+	}
+	
+	public String getBlockingNeighbor() {
+		return this.blockingNeighbor;
+	}
+	
+	public void setBlockingNeighbor(String blockingNeighbor) {
+		this.blockingNeighbor = blockingNeighbor;
+	}
+	
+	public int getPriority() {
+		return this.priority;
+	}
+	
+	public void setBlockedFromExplo(boolean b) {
+		this.blockedFromExplo = b;
+	}
+	
+	public boolean getBlockedFromExplo() {
+		return this.blockedFromExplo;
 	}
 	
 }

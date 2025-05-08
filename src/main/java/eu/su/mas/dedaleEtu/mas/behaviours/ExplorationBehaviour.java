@@ -19,6 +19,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 
 	private boolean finished = false;
 	private boolean treasureFound = false; // if a non-silo agent found a treasure in his location
+	private boolean neighbor = false;
 
 	private List<String> list_agentNames;
 
@@ -38,6 +39,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 	@Override
 	public void action() {
 		this.treasureFound = false;
+		this.neighbor = false;
 		System.out.println(this.myAgent.getLocalName()+" : ExplorationBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		if (fsm.getAllMaps() == null) {
@@ -53,10 +55,37 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 		if (myPosition!=null){
 			Couple<String, Boolean> lastMove = fsm.getLastMoveSuccess();
 			String nextNodeId=null;
-			if (lastMove != null && !lastMove.getRight()) {
+			if (lastMove != null && !lastMove.getRight() && fsm.getBlocked() == false) {
 				Debug.warning(this.myAgent.getLocalName()+" : Last move failed, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
+				fsm.setBlocked(true);
 				nextNodeId = lastMove.getLeft();
-			} else {
+			}
+			else if(lastMove != null && !lastMove.getRight()) {
+				//The two last moves failed. Try to communicate with neighbor.
+				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+				for(Couple<Location,List<Couple<Observation,String>>> loc : lobs) {
+					if(loc.getLeft().getLocationId().equals(nextNodeId)) { //Checking at the destination coordinate
+						for(Couple<Observation,String> obs : loc.getRight()) {
+							for(String name : this.list_agentNames) { //Checking for an agent neighbor
+								if(obs.getLeft().getName().equals(name)) {
+									neighbor = true;
+									fsm.setBlockingNeighbor(obs.getLeft().getName());
+								}
+							}
+						}
+					}
+				}
+				if(neighbor) { //Initiate communication with neighbor
+					fsm.setBlockedFromExplo(true);
+					return;
+				}
+				else { //Blocked by the Wumpus
+					Debug.warning(this.myAgent.getLocalName()+" : Last move failed because blocked by the Wumpus, doing it again - going to "+lastMove.getLeft()+" from "+myPosition.getLocationId());
+					nextNodeId = lastMove.getLeft();
+				}
+			}
+			else {
+				fsm.setBlocked(false);
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 	
@@ -130,6 +159,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 						}
 						System.out.println(this.myAgent.getLocalName()+" : path restant - "+path);
 						nextNodeId=path.remove(0);
+						
 						fsm.setCurrentPath(path);
 						
 						//System.out.println("     - Destination : "+path.getLast());
@@ -150,6 +180,7 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 	public int onEnd() {
 		if (finished) return 8; 			// MOVE_TO_TREASURE
 		if (treasureFound) return 9;//9;	// COLLECT
+		if (neighbor) return 22;			// UNBLOCK
 		return 0; 							// MESSAGE
 	}	
 }

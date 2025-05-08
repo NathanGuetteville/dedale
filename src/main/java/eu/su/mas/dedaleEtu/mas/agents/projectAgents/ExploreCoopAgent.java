@@ -18,6 +18,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.FSMCoopBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MoveToSiloBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.MoveToTreasureBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.UnblockBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PongBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapsBehaviour;
@@ -62,6 +63,9 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 	private static final String COLLECT = "Collect";
 	private static final String MOVE_TO_SILO = "Move to Silo";
 	private static final String MOVE_TO_TREASURE = "Move to Treasure";
+	private static final String UNBLOCK = "Unblock";
+	
+	//private final int priority = this.getBackPackFreeSpaceFor(Observation.ANY_TREASURE);
 	
 
 	/**
@@ -104,8 +108,8 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		 ************************************************/
 		
 		System.out.println("initialisation des agents : "+list_agentNames);
-		
-		FSMCoopBehaviour fsm = new FSMCoopBehaviour(this, list_agentNames);
+		int priority = this.getBackPackFreeSpaceFor(Observation.ANY_TREASURE);
+		FSMCoopBehaviour fsm = new FSMCoopBehaviour(this, list_agentNames, priority);
 		//FSM States
 		fsm.registerFirstState(new ExplorationBehaviour(this, list_agentNames), EXPLO);
 		fsm.registerState(new MessageBehaviour(this), MESS);
@@ -115,6 +119,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerState(new CollectBehaviour(this), COLLECT);
 		fsm.registerState(new MoveToSiloBehaviour(this, list_agentNames), MOVE_TO_SILO);
 		fsm.registerState(new MoveToTreasureBehaviour(this, list_agentNames), MOVE_TO_TREASURE);
+		fsm.registerState(new UnblockBehaviour(this), UNBLOCK);
 		fsm.registerLastState(new EndFSMBehaviour(), END);
 		
 		//FSM Transitions
@@ -141,6 +146,10 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(MESS, MOVE_TO_TREASURE, 20);
 		fsm.registerTransition(COLLECT, END, 21);
 		
+		fsm.registerTransition(EXPLO, UNBLOCK, 22);
+		fsm.registerTransition(UNBLOCK, EXPLO, 23);
+		fsm.registerTransition(UNBLOCK, MOVE_TO_SILO, 24);
+
 		
 		lb.add(fsm);
 
