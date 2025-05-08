@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
+import java.util.List;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
@@ -93,13 +94,12 @@ public class ShareSiloBehaviour extends OneShotBehaviour{
 			fsm.setCurrentInterlocutor(null);
 			
 			String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().getLocationId();
-			String destination = fsm.getMap().getNodeWithMaxDegree();
-			if (!destination.equals(myPosition)) {
+			List<String> path = fsm.getMap().getShortestPathToClosestMaxDegreeNode(myPosition);
+			if (path != null && !path.isEmpty()) {
 				fsm.setStayingPut(false);
-				fsm.setCurrentPath(fsm.getMap().getShortestPath(myPosition, destination));
+				fsm.setCurrentPath(path);
 				Couple<Integer, String> currentDest = fsm.getSiloDestinationClock();
-				fsm.updateSiloDestinationClock(new Couple<>(currentDest.getLeft()+1, destination));
-
+				fsm.updateSiloDestinationClock(new Couple<>(currentDest.getLeft()+1, path.getLast()));
 			}
 		}
 		

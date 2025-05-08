@@ -1,11 +1,8 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import debug.Debug;
 import eu.su.mas.dedale.env.Location;
@@ -13,17 +10,8 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.utils.TreasureUtils;
-import jade.core.Agent;
-import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.ParallelBehaviour;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
-import javafx.util.Pair;
+
 
 public class ExplorationBehaviour extends OneShotBehaviour {
 
