@@ -2,25 +2,33 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-public class MessageBehaviour extends OneShotBehaviour {
+public class MessageBehaviour extends SimpleBehaviour {
+	private int step = 0;
+    private int maxSteps = 5;
+    
+    private int transition = 0;
 	
-	private int transition = 0;
 	
 	public MessageBehaviour(AbstractDedaleAgent a) {
 		super(a);
 	}
+	
+	public boolean done() {
+        return step >= maxSteps || transition != 0;
+    }
 
 	@Override
 	public void action() {
-		//System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
+		System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		if (fsm.hasSentPing()) {
-			this.myAgent.doWait(100);
+			this.myAgent.doWait(1000);
 		}
-		
+		System.out.println(this.myAgent.getLocalName()+" : trying to receive pong");
 		MessageTemplate pongTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PONG"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -35,7 +43,8 @@ public class MessageBehaviour extends OneShotBehaviour {
 			}
 			
 		}
-		
+
+		System.out.println(this.myAgent.getLocalName()+" : trying to receive ping");
 		MessageTemplate pingTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PING"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -57,9 +66,7 @@ public class MessageBehaviour extends OneShotBehaviour {
 		}
 		
 		this.transition = 2; // PING
-		return;
-		
-		
+		step++;
 	}
 		
 	@Override

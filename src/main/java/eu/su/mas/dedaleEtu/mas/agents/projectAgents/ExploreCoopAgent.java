@@ -123,7 +123,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(SHARE, EXPLO, 7);
 		fsm.registerTransition(EXPLO, END, 8);
 		fsm.registerTransition(EXPLO, COLLECT, 9);
-		fsm.registerTransition(COLLECT, MOVE_TO_SILO, 10);
+		fsm.registerTransition(COLLECT, MESS, 10);
 		fsm.registerTransition(MOVE_TO_SILO, EXPLO, 11);
 		fsm.registerTransition(MOVE_TO_SILO, MESS, 12);
 		fsm.registerTransition(MESS, MOVE_TO_SILO, 13);

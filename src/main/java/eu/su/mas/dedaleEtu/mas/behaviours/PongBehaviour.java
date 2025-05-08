@@ -22,7 +22,7 @@ public class PongBehaviour extends OneShotBehaviour{
 	
 	@Override
 	public void action() {
-		//System.out.println(this.myAgent.getLocalName()+" : PongBehaviour");
+		System.out.println(this.myAgent.getLocalName()+" : PongBehaviour");
 		receiver = ((FSMCoopBehaviour) getParent()).getCurrentInterlocutor();
 		if (receiver == null || receiver.equals(this.myAgent.getLocalName())) return;
 		

@@ -9,6 +9,7 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.utils.HelpNeededForTreasure;
 import jade.core.behaviours.FSMBehaviour;
 
 public class FSMCoopBehaviour extends FSMBehaviour {
@@ -30,6 +31,10 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
 	
 	private HashMap<String, List<Couple<Observation, String>>> recordedTreasures = new HashMap<>(); // (NodeId, content of the treasure), information currently accumulated but not used
+	
+	private HelpNeededForTreasure helpNeeded = null;
+	
+	private Couple<String, Boolean> lastMoveSuccess = null;
 	
 	public FSMCoopBehaviour(AbstractDedaleAgent a, List<String> agentNames, boolean agentIsSilo) {
 		super(a);
@@ -142,6 +147,22 @@ public class FSMCoopBehaviour extends FSMBehaviour {
 
 	public void setRecordedTreasures(HashMap<String, List<Couple<Observation, String>>> recordedTreasures) {
 		this.recordedTreasures = recordedTreasures;
+	}
+
+	public HelpNeededForTreasure getHelpNeeded() {
+		return helpNeeded;
+	}
+
+	public void setHelpNeeded(HelpNeededForTreasure helpNeeded) {
+		this.helpNeeded = helpNeeded;
+	}
+
+	public Couple<String, Boolean> getLastMoveSuccess() {
+		return lastMoveSuccess;
+	}
+
+	public void setLastMoveSuccess(Couple<String, Boolean> lastMoveSuccess) {
+		this.lastMoveSuccess = lastMoveSuccess;
 	}
 	
 }

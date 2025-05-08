@@ -42,7 +42,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 
 	@Override
 	public void action() {
-		//System.out.println(this.myAgent.getLocalName()+" : ShareMapsBehaviour");
+		System.out.println(this.myAgent.getLocalName()+" : ShareMapsBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		receiver = fsm.getCurrentInterlocutor();
 		if (receiver == null) return;

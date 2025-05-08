@@ -1,13 +1,19 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.util.List;
 import java.util.Random;
 
 import dataStructures.tuple.Couple;
+import debug.Debug;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
+import eu.su.mas.dedaleEtu.mas.utils.HelpNeededForTreasure;
+import eu.su.mas.dedaleEtu.mas.utils.TreasureUtils;
 import jade.core.behaviours.OneShotBehaviour;
 
 public class CollectBehaviour extends OneShotBehaviour {
@@ -18,78 +24,82 @@ public class CollectBehaviour extends OneShotBehaviour {
 		super(myagent);
 	}
 	
-	private static boolean isUnlocked(List<Couple<Observation, String>> tresor) {
-		for (Couple<Observation, String> o:tresor) {
-			switch (o.getLeft()) {
-			case LOCKSTATUS: return Integer.parseInt(o.getRight()) == 1;
-			default: break;
-			}
-		}
-		return false;
-	}
 	
-	private static boolean enoughSpace(List<Couple<Observation, String>> tresor, ExploreCoopAgent agent) {
-		for (Couple<Observation, String> o:tresor) {
-			switch (o.getLeft()) {
-			case DIAMOND: return agent.getBackPackFreeSpaceFor(Observation.DIAMOND) >= Integer.parseInt(o.getRight());
-			case GOLD: return agent.getBackPackFreeSpaceFor(Observation.GOLD) >= Integer.parseInt(o.getRight());
-			default: break;
-			}
-		}
-		return false;
-	}
 
 	public void action() {
-		// WIP
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		System.out.println(this.myAgent.getLocalName()+" : collect");
 		
+
+		Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition(); // Is my position always the first element of observe() ?
 		List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
-		List<Couple<Observation,String>> lObservations= lobs.get(0).getRight();
+		List<Couple<Observation,String>> tresor= TreasureUtils.getTreasureFromLocation(lobs, myPosition);
 		
-		/*if (isUnlocked(lObservations)) {
-			if ((AbstractDedaleAgent) this.myAgent).openLock(null))
-			if (enoughSpace(lObservations, (ExploreCoopAgent) this.myAgent)) {
-				
+		
+		HelpNeededForTreasure hnft = new HelpNeededForTreasure(lobs.get(0).getLeft().getLocationId());
+		
+		Observation treasureType = TreasureUtils.treasureType(tresor);
+		System.out.println(this.myAgent.getLocalName()+" : I try to collect "+tresor+" at position "+myPosition.getLocationId());
+		Observation myTreasureType = ((AbstractDedaleAgent) this.myAgent).getMyTreasureType();
+		
+		boolean sameTypes = treasureType.equals(myTreasureType);
+		if (!sameTypes) {
+			// Search for agent with the adequate type
+			//hnft.activate();
+			hnft.setTreasureType(treasureType);
+		}
+		
+		boolean openLockSuccess = ((AbstractDedaleAgent) this.myAgent).openLock(myTreasureType);
+		if (!openLockSuccess) {
+			// Search for more lockpicking power
+			//hnft.activate();
+			hnft.setLockpicking(TreasureUtils.getTreasureLockPicking(tresor));
+		}
+		
+		int amount = ((AbstractDedaleAgent) this.myAgent).pick();
+		if (amount == 0) { // The agent couldn't pick up the treasure
+			if (sameTypes && openLockSuccess) {
+				// Not enough Strength, look for more
+				//hnft.activate();
+				hnft.setStrength(TreasureUtils.getTreasureStrength(tresor));
 			}
-		}*/
-		
-		boolean b = false;
-		for(Couple<Observation,String> o:lObservations){
-			switch (o.getLeft()) {
-			case DIAMOND:case GOLD:
-				
-				System.out.println(this.myAgent.getLocalName()+" - My treasure type is : "+((AbstractDedaleAgent) this.myAgent).getMyTreasureType());
-				System.out.println(this.myAgent.getLocalName()+" - My current backpack capacity is:"+ ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
-				System.out.println(this.myAgent.getLocalName()+" - I try to open the safe: "+((AbstractDedaleAgent) this.myAgent).openLock(Observation.GOLD));
-				System.out.println(this.myAgent.getLocalName()+" - Value of the treasure on the current position: "+o.getLeft() +": "+ o.getRight());
-				int amount = ((AbstractDedaleAgent) this.myAgent).pick();
-				System.out.println(this.myAgent.getLocalName()+" - The agent grabbed :"+amount);
-				System.out.println(this.myAgent.getLocalName()+" - the remaining backpack capacity is: "+ ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
-				b=amount>0;
-				break;
-			default:
-				break;
+			fsm.setHelpNeeded(hnft);
+		} else { // The agent did pick up some of the treasure
+			List<Couple<Observation,String>> tresor_post = ((AbstractDedaleAgent)this.myAgent).observe().get(0).getRight();
+			if (TreasureUtils.treasureContainsNoRessources(tresor_post)) { 	// He took everything
+				fsm.getRecordedTreasures().remove(myPosition.getLocationId());
+			} else { 														// He took part of it
+				fsm.getRecordedTreasures().put(myPosition.getLocationId(), tresor_post);
 			}
 		}
 		
-		//If the agent picked (part of) the treasure
-		if (b){
-			List<Couple<Location,List<Couple<Observation,String>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-			System.out.println("State of the observations after picking "+lobs2);
-			fsm.getRecordedTreasures().put(lobs2.get(0).getLeft().getLocationId(), lobs2.get(0).getRight());
-		} else {
-			//Random move from the current position
-			Random r= new Random();
-			int moveId=1+r.nextInt(lobs.size()-1);//removing the current position from the list of target to accelerate the tests, but not necessary as to stay is an action	
+		String nextNodeId = null;
+		List<String> path = fsm.getCurrentPath();
+		if (path.isEmpty()) {
+			if (amount == 0 || !fsm.hasLearnedSiloPosition()) {
+				path = fsm.getMap(this.myAgent.getLocalName()).getShortestPathToClosestOpenNode(myPosition.getLocationId());
+				System.out.println(this.myAgent.getLocalName()+" : calculated path to closest open node");
+			} else {
+				String destination = fsm.getSiloDestinationClock().getRight();
+				path = fsm.getMap(this.myAgent.getLocalName()).getShortestPath(myPosition.getLocationId(), destination);
+				fsm.setGoingToSilo(true);
+				System.out.println(this.myAgent.getLocalName()+" : calculated path to silo position/destination");
+			}
 		}
+		System.out.println(this.myAgent.getLocalName()+" : path restant - "+path);
+		nextNodeId=path.remove(0);
+		fsm.setCurrentPath(path);
+		
+		fsm.setLastMoveSuccess(new Couple<>(nextNodeId, ((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId))));
+		
 	}
 	
 	@Override
 	public int onEnd() {
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
-		if (fsm.hasLearnedSiloPosition()) return 10; 	// MOVE_TO_SILO
-		return 15;										// EXPLO
+		if (fsm.getHelpNeeded()!=null || !fsm.hasLearnedSiloPosition()) return 15;		// EXPLO
+		System.out.println(this.myAgent.getLocalName()+" : I collected something, let's go to the silo");
+		return 10; 					// MESS then MOVE_TO_SILO
 	}	
 
 }
