@@ -84,10 +84,16 @@ public class ExplorationBehaviour extends OneShotBehaviour {
 												neighbor = false;
 												List<String> openNodes = fsm.getMap(this.myAgent.getLocalName()).getOpenNodes();
 												Random r= new Random();
-												int newDestId=r.nextInt(openNodes.size()-1);
-												List<String> path = fsm.getMap(this.myAgent.getLocalName()).getShortestPath(myPosition.getLocationId(), openNodes.get(newDestId));
-												nextNodeId = path.remove(0);
-												fsm.setCurrentPath(path);
+												if (!openNodes.isEmpty()) {
+													int newDestId=r.nextInt(openNodes.size());
+													List<String> path = fsm.getMap(this.myAgent.getLocalName()).getShortestPath(myPosition.getLocationId(), openNodes.get(newDestId));
+													nextNodeId = path.remove(0);
+													fsm.setCurrentPath(path);
+												} else {
+													int newDestId=r.nextInt(lobs.size());
+													nextNodeId = lobs.get(newDestId).getLeft().getLocationId();
+												}
+												
 												break;
 											default: break;
 										}

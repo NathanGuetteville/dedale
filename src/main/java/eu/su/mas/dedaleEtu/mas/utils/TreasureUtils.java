@@ -38,7 +38,6 @@ public class TreasureUtils {
 			default: break;
 			}
 		}
-		Debug.warning("This treasure does not have a type ?");
 		return null;
 	}
 	
@@ -49,7 +48,6 @@ public class TreasureUtils {
 			default: break;
 			}
 		}
-		Debug.warning("This treasure does not have a type ?");
 		return true;
 	}
 	
@@ -60,7 +58,6 @@ public class TreasureUtils {
 			default: break;
 			}
 		}
-		Debug.warning("This treasure does not have a lockpicking attribute ?");
 		return -1;
 	}
 	
@@ -71,7 +68,6 @@ public class TreasureUtils {
 			default: break;
 			}
 		}
-		Debug.warning("This treasure does not have a lockpicking attribute ?");
 		return -1;
 	}
 	

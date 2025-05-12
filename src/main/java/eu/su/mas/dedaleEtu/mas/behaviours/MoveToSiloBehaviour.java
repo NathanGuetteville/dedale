@@ -47,6 +47,8 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 			fsm.initAllMaps();
 		}
 		
+		System.out.println(this.myAgent.getLocalName()+" : J'ai tendance à "+(fsm.getBlocked()? " " : "pas ")+ "bloquer");
+		
 		boolean luckilyEmptied = ((AbstractDedaleAgent) this.myAgent).emptyMyBackPack("Tank");
 		if (luckilyEmptied) {
 			this.attainedDestination = true;
@@ -84,7 +86,7 @@ public class MoveToSiloBehaviour extends OneShotBehaviour {
 												Random r= new Random();
 												nextNodeId = fsm.getLastMoveSuccess().getLeft();
 												while (nextNodeId.equals(fsm.getLastMoveSuccess().getLeft())) {
-													int newDestId=r.nextInt(lobs.size()-1);
+													int newDestId=r.nextInt(lobs.size());
 													nextNodeId = lobs.get(newDestId).getLeft().getLocationId();
 												}
 												

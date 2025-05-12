@@ -63,6 +63,7 @@ public class MessageBehaviour extends OneShotBehaviour {
 				this.transition = 13;	// MOVE_TO_SILO
 			} else this.transition = 1; // EXPLO
 			
+			System.out.println(this.myAgent.getLocalName()+" : je suis dans message, transition :"+this.transition);
 			fsm.setPingSent(false);
 			return;
 		}

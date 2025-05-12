@@ -52,10 +52,15 @@ public class MoveToTreasureBehaviour extends OneShotBehaviour {
 		this.leader = fsm.isLeader();
 		
 		((AbstractDedaleAgent) this.myAgent).emptyMyBackPack("Tank");
+
+		System.out.println(this.myAgent.getLocalName()+" : J'ai tendance à "+(fsm.getBlocked()? " " : "pas ")+ "bloquer");
 		
 		if (fsm.hasLearnedSiloPosition() && ((ExploreCoopAgent) this.myAgent).backpackIsNotEmpty()) {
+			fsm.setGoingToTreasure(false);
+			fsm.setGoingToSilo(true);
 			return;
 		}
+		
 		
 		//0) Retrieve the current position
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -85,7 +90,7 @@ public class MoveToTreasureBehaviour extends OneShotBehaviour {
 												Random r= new Random();
 												nextNodeId = fsm.getLastMoveSuccess().getLeft();
 												while (nextNodeId.equals(fsm.getLastMoveSuccess().getLeft())) {
-													int newDestId=r.nextInt(lobs.size()-1);
+													int newDestId=r.nextInt(lobs.size());
 													nextNodeId = lobs.get(newDestId).getLeft().getLocationId();
 												}
 												

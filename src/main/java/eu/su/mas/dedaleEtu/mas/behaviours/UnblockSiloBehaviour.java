@@ -68,7 +68,6 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 				if(priority > content.getLeft()) {
 					return;
 				}
-				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
 				Random r= new Random();
 				int moveId=1+r.nextInt(lobs.size()-1);
 				while(lobs.get(moveId).getLeft() == content.getRight()) {
