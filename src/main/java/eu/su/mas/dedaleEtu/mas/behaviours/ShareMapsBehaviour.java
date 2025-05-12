@@ -32,7 +32,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : ShareBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : ShareBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		receiver = fsm.getCurrentInterlocutor();
 		if (receiver == null) return;
@@ -42,18 +42,19 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 		
 		this.myAgent.doWait(100);
 
-		// Before exchanging maps, try exchange known silo position
+		// Before exchanging maps, try exchange known silo position and recorded treasures positions
 		ACLMessage pos_msg = new ACLMessage(ACLMessage.INFORM);
 		pos_msg.setProtocol("SHARE-POS");
 		pos_msg.setSender(this.myAgent.getAID());
 		pos_msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
 		
-		Couple<Integer, String> pair = fsm.getSiloDestinationClock();
+		Couple<Integer, String> pair_pos = fsm.getSiloDestinationClock();
 		try {
-			pos_msg.setContentObject(pair);
+			pos_msg.setContentObject(pair_pos);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		((AbstractDedaleAgent)this.myAgent).sendMessage(pos_msg);
 		
 		MessageTemplate pos_template =MessageTemplate.and(
 				MessageTemplate.MatchProtocol("SHARE-POS"),
@@ -62,14 +63,43 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 		
 		if (posReceived != null) {
 			try {
-				fsm.updateSiloDestinationClock((Couple<Integer, String> ) posReceived.getContentObject());
-				if (((ExploreCoopAgent) this.myAgent).backpackIsNotEmpty()) {
+				if (fsm.updateSiloDestinationClock((Couple<Integer, String> ) posReceived.getContentObject())) {
 					fsm.setLearnedSiloPosition(true);
+					if (((ExploreCoopAgent) this.myAgent).backpackIsNotEmpty()) {
+						fsm.setGoingToSilo(true);
+					}
 				}
 			} catch (UnreadableException e) {
 				e.printStackTrace();
 			}
 		}
+		
+		ACLMessage tres_msg = new ACLMessage(ACLMessage.INFORM);
+		tres_msg.setProtocol("SHARE-TRES");
+		tres_msg.setSender(this.myAgent.getAID());
+		tres_msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
+		
+		Couple<Long, HashMap<String, List<Couple<Observation, String>>>> pair_tres = fsm.getRecordedTreasuresClock();
+		try {
+			tres_msg.setContentObject(pair_tres);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		MessageTemplate tres_template =MessageTemplate.and(
+				MessageTemplate.MatchProtocol("SHARE-TRES"),
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage tresReceived = this.myAgent.receive(tres_template);
+		
+		if (tresReceived != null) {
+			try {
+				fsm.mergeRecordedTreasuresClock((Couple<Long, HashMap<String, List<Couple<Observation, String>>>> ) tresReceived.getContentObject());
+			} catch (UnreadableException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
 					
 		// Now, exchange maps
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -224,7 +254,7 @@ public class ShareMapsBehaviour extends OneShotBehaviour{
 	@Override
 	public int onEnd() {
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
-		if (fsm.hasLearnedSiloPosition()) return 14; 	// MOVE_TO_SILO
+		if (fsm.isGoingToSilo()) return 14; 	// MOVE_TO_SILO
 		if (fsm.isGoingToTreasure()) return 16;			// MOVE_TO_TREASURE
 		return 7; 										// EXPLO
 	}

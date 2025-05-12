@@ -56,13 +56,32 @@ public class MessageSiloBehaviour extends OneShotBehaviour {
 			this.myAgent.doWait(500);
 		}
 		
-		System.out.println(this.myAgent.getLocalName()+" : trying to receive pong");
+		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+		if (myPosition!=null){
+			List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
+			String receiver = null;
+			for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
+				for (Couple<Observation, String> pos : obs.getRight()) {
+					switch (pos.getLeft()) {
+						case AGENTNAME: receiver = pos.getRight();break;
+						default: break;
+					}
+				}
+			}
+			if (receiver != null) {
+				fsm.setBlockingNeighbor(receiver);
+				this.transition = 13;
+				return;
+			}
+		}
+		
+		//System.out.println(this.myAgent.getLocalName()+" : trying to receive pong");
 		MessageTemplate pongTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PONG"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pongReceived=this.myAgent.receive(pongTemplate);
 		if (pongReceived!=null) {
-			System.out.println(this.myAgent.getLocalName()+" : pong successfully received");
+			//System.out.println(this.myAgent.getLocalName()+" : pong successfully received");
 			String pongSender = pongReceived.getSender().getLocalName();
 			if (!pongSender.equals(this.myAgent.getLocalName())) {
 				this.transition = 4; // SHARE
@@ -73,13 +92,13 @@ public class MessageSiloBehaviour extends OneShotBehaviour {
 			
 		}
 
-		System.out.println(this.myAgent.getLocalName()+" : trying to receive ping");
+		//System.out.println(this.myAgent.getLocalName()+" : trying to receive ping");
 		MessageTemplate pingTemplate=MessageTemplate.and(
 				MessageTemplate.MatchProtocol("PING"),
 				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage pingReceived=this.myAgent.receive(pingTemplate);
 		if (pingReceived!=null) {
-			System.out.println(this.myAgent.getLocalName()+" : ping successfully received");
+			//System.out.println(this.myAgent.getLocalName()+" : ping successfully received");
 			String pingSender = pingReceived.getSender().getLocalName();
 			if (!pingSender.equals(this.myAgent.getLocalName())) {
 				this.transition = 3; // PONG

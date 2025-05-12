@@ -1,10 +1,12 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -36,7 +38,7 @@ public class ShareSiloBehaviour extends OneShotBehaviour{
 		
 		this.myAgent.doWait(100);
 
-		// Before exchanging maps, try exchange known silo position
+		// Before exchanging maps, try exchange known silo position and recorded treasures positions
 		ACLMessage pos_msg = new ACLMessage(ACLMessage.INFORM);
 		pos_msg.setProtocol("SHARE-POS");
 		pos_msg.setSender(this.myAgent.getAID());
@@ -48,6 +50,7 @@ public class ShareSiloBehaviour extends OneShotBehaviour{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		((AbstractDedaleAgent)this.myAgent).sendMessage(pos_msg);
 		
 		MessageTemplate pos_template =MessageTemplate.and(
 				MessageTemplate.MatchProtocol("SHARE-POS"),
@@ -58,6 +61,31 @@ public class ShareSiloBehaviour extends OneShotBehaviour{
 			try {
 				fsm.updateSiloDestinationClock((Couple<Integer, String> ) posReceived.getContentObject());
 
+			} catch (UnreadableException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		ACLMessage tres_msg = new ACLMessage(ACLMessage.INFORM);
+		tres_msg.setProtocol("SHARE-TRES");
+		tres_msg.setSender(this.myAgent.getAID());
+		tres_msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
+		
+		Couple<Long, HashMap<String, List<Couple<Observation, String>>>> pair_tres = fsm.getRecordedTreasuresClock();
+		try {
+			tres_msg.setContentObject(pair_tres);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		MessageTemplate tres_template =MessageTemplate.and(
+				MessageTemplate.MatchProtocol("SHARE-TRES"),
+				MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage tresReceived = this.myAgent.receive(tres_template);
+		
+		if (tresReceived != null) {
+			try {
+				fsm.mergeRecordedTreasuresClock((Couple<Long, HashMap<String, List<Couple<Observation, String>>>> ) tresReceived.getContentObject());
 			} catch (UnreadableException e) {
 				e.printStackTrace();
 			}

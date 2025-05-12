@@ -17,7 +17,7 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	private boolean goingToSilo = false; // if the agent is in search of the silo
 	private boolean learnedSiloPosition = false; // if the agent exchanged with the silo himself or an agent who knows a destination of the silo
 	private boolean blocked = false; // if the agent is blocked
-	private boolean blockedFromExplo = false;
+	private int transitionBackFromUnblock = 23; // 23, 24, or 26
 	
 	private String blockingNeighbor = null;
 	
@@ -152,13 +152,13 @@ public class FSMCoopBehaviour extends MyFSMBehaviour {
 	public int getPriority() {
 		return this.priority;
 	}
-	
-	public void setBlockedFromExplo(boolean b) {
-		this.blockedFromExplo = b;
+
+	public int getTransitionBackFromUnblock() {
+		return transitionBackFromUnblock;
 	}
-	
-	public boolean getBlockedFromExplo() {
-		return this.blockedFromExplo;
+
+	public void setTransitionBackFromUnblock(int transitionBackFromUnblock) {
+		this.transitionBackFromUnblock = transitionBackFromUnblock;
 	}
 	
 }

@@ -20,7 +20,7 @@ public class MessageBehaviour extends OneShotBehaviour {
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
+		//System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
 		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
 		
 		if (fsm.hasSentPing()) {

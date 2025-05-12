@@ -21,7 +21,7 @@ public class MyFSMBehaviour extends FSMBehaviour {
 	private List<String> currentPath = new ArrayList<String>(); // Current calculated path, to open node, destination of silo, or treasure location (soon)
 	private Couple<Integer, String> siloDestinationClock = new Couple<>(0, ""); // Knowledge of the destination of the silo
 	
-	private HashMap<String, List<Couple<Observation, String>>> recordedTreasures = new HashMap<>(); // (NodeId, content of the treasure), information currently accumulated but not used
+	private Couple<Long, HashMap<String, List<Couple<Observation, String>>>> recordedTreasuresClock = new Couple<>(0L, new HashMap<>()); // (NodeId, content of the treasure), information currently accumulated but not used
 	
 	private Couple<String, Boolean> lastMoveSuccess = null;
 	
@@ -58,17 +58,40 @@ public class MyFSMBehaviour extends FSMBehaviour {
 		return siloDestinationClock;
 	}
 
-	public void updateSiloDestinationClock(Couple<Integer, String> newSiloDestinationClock) {
-		if (newSiloDestinationClock.getLeft() > this.siloDestinationClock.getLeft())
+	public boolean updateSiloDestinationClock(Couple<Integer, String> newSiloDestinationClock) {
+		if (newSiloDestinationClock.getLeft() > this.siloDestinationClock.getLeft()) {
 			this.siloDestinationClock = newSiloDestinationClock;
+			return true;
+		}
+		return false;
 	}
 
-	public HashMap<String, List<Couple<Observation, String>>> getRecordedTreasures() {
-		return recordedTreasures;
+	public Couple<Long, HashMap<String, List<Couple<Observation, String>>>> getRecordedTreasuresClock() {
+		return recordedTreasuresClock;
+	}
+	
+	public boolean recordedTreasuresClockIsEmpty() {
+		return this.recordedTreasuresClock.getRight().isEmpty();
+	}
+	
+	public void putInRecordedTreasuresClock(String locId, List<Couple<Observation, String>> tresor) {
+		this.recordedTreasuresClock.getRight().put(locId, tresor);
+		this.recordedTreasuresClock = new Couple<>(System.nanoTime(), this.recordedTreasuresClock.getRight());
+	}
+	
+	public void removeFromRecordedTreasuresClock(String locId) {
+		this.recordedTreasuresClock.getRight().remove(locId);
+		this.recordedTreasuresClock = new Couple<>(System.nanoTime(), this.recordedTreasuresClock.getRight());
 	}
 
-	public void setRecordedTreasures(HashMap<String, List<Couple<Observation, String>>> recordedTreasures) {
-		this.recordedTreasures = recordedTreasures;
+	public void mergeRecordedTreasuresClock(Couple<Long, HashMap<String, List<Couple<Observation, String>>>> incomingRecordedTreasures) {
+		if (incomingRecordedTreasures.getLeft() > this.recordedTreasuresClock.getLeft()) {
+			this.recordedTreasuresClock.getRight().putAll(incomingRecordedTreasures.getRight());
+		} else {
+			HashMap<String, List<Couple<Observation, String>>> newMap = new HashMap<>(incomingRecordedTreasures.getRight());
+			newMap.putAll(this.recordedTreasuresClock.getRight());
+			this.recordedTreasuresClock = new Couple<>(this.recordedTreasuresClock.getLeft(), newMap);
+		}
 	}
 
 	public Couple<String, Boolean> getLastMoveSuccess() {

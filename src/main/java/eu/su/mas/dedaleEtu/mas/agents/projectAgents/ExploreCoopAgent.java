@@ -27,28 +27,6 @@ import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 import javafx.application.Platform;
 
-/**
- * <pre>
- * ExploreCoop agent. 
- * Basic example of how to "collaboratively" explore the map
- *  - It explore the map using a DFS algorithm and blindly tries to share the topology with the agents within reach.
- *  - The shortestPath computation is not optimized
- *  - Agents do not coordinate themselves on the node(s) to visit, thus progressively creating a single file. It's bad.
- *  - The agent sends all its map, periodically, forever. Its bad x3.
- *  - You should give him the list of agents'name to send its map to in parameter when creating the agent.
- *   Object [] entityParameters={"Name1","Name2};
- *   ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent.class.getName(), entityParameters);
- *  
- * It stops when all nodes have been visited.
- * 
- * 
- *  </pre>
- *  
- * @author hc
- *
- */
-
-
 public class ExploreCoopAgent extends AbstractDedaleAgent {
 
 	private static final long serialVersionUID = -7969469610241668140L;
@@ -144,11 +122,17 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(MOVE_TO_TREASURE, EXPLO, 18);
 		fsm.registerTransition(MOVE_TO_TREASURE, MESS, 19);
 		fsm.registerTransition(MESS, MOVE_TO_TREASURE, 20);
-		fsm.registerTransition(COLLECT, END, 21);
+		fsm.registerTransition(MOVE_TO_TREASURE, END, 21);
 		
 		fsm.registerTransition(EXPLO, UNBLOCK, 22);
 		fsm.registerTransition(UNBLOCK, EXPLO, 23);
 		fsm.registerTransition(UNBLOCK, MOVE_TO_SILO, 24);
+		
+		fsm.registerTransition(MOVE_TO_TREASURE, UNBLOCK, 25);
+		fsm.registerTransition(UNBLOCK, MOVE_TO_TREASURE, 26);
+		fsm.registerTransition(MOVE_TO_SILO, UNBLOCK, 27);
+		
+		fsm.registerTransition(MOVE_TO_TREASURE, MOVE_TO_SILO, 28);
 
 		
 		lb.add(fsm);

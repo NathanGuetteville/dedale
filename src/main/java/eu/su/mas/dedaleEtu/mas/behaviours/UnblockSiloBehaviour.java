@@ -2,6 +2,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.projectAgents.ExploreCoopAgent;
 import jade.core.AID;
@@ -21,8 +22,6 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 	
 	private static final long serialVersionUID = 1354754475697867L;
 	
-	private int transition;
-	
 	public UnblockSiloBehaviour(AbstractDedaleAgent a) {
 		super(a);
 	}
@@ -30,8 +29,8 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 
 	@Override
 	public void action() {
-		System.out.println(this.myAgent.getLocalName()+" : MessageBehaviour");
-		FSMCoopBehaviour fsm = ((FSMCoopBehaviour) getParent());
+		System.out.println(this.myAgent.getLocalName()+" : UnblockSiloBehaviour");
+		FSMSiloBehaviour fsm = ((FSMSiloBehaviour) getParent());
 		String receiver = fsm.getBlockingNeighbor();
 		if(receiver == null) {
 			return;
@@ -54,7 +53,7 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 		
 		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 		
-		this.myAgent.doWait(100);
+		this.myAgent.doWait(300);
 		
 		MessageTemplate blk_template =MessageTemplate.and(
 				MessageTemplate.MatchProtocol("UNBLOCK"),
@@ -62,10 +61,11 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 		ACLMessage blkReceived = this.myAgent.receive(blk_template);
 		
 		if (blkReceived != null) {
+			List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
+			if (lobs.size() < 3) priority += 500; // If the agent is completely stuck, he gain priority for this specific interaction
 			try {
 				Couple<Integer, Location> content = (Couple<Integer,Location>)blkReceived.getContentObject();
 				if(priority > content.getLeft()) {
-					this.transition = 12;
 					return;
 				}
 				List<Couple<Location,List<Couple<Observation,String>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
@@ -74,8 +74,20 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 				while(lobs.get(moveId).getLeft() == content.getRight()) {
 					moveId=1+r.nextInt(lobs.size()-1);
 				}
-				this.transition = 12;
-				((AbstractDedaleAgent)this.myAgent).moveTo(lobs.get(moveId).getLeft());
+				
+				fsm.getCurrentPath().clear();
+				
+				/**
+				 * Just added here to let you see what the agent is doing, otherwise he will be too quick
+				 */
+				try {
+					this.myAgent.doWait(1000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				String nextNodeId = lobs.get(moveId).getLeft().getLocationId();
+				fsm.setLastMoveSuccess(new Couple<>(nextNodeId, ((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId))));
 				return;
 				
 			} catch (UnreadableException e) {
@@ -87,7 +99,7 @@ public class UnblockSiloBehaviour extends OneShotBehaviour {
 		
 	@Override
 	public int onEnd() {
-		return this.transition;
+		return 12;
 	}
 
 }

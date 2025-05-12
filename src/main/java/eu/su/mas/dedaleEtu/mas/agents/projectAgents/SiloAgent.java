@@ -97,6 +97,7 @@ public class SiloAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(MESS, MESS, 10);
 		fsm.registerTransition(MOVE, UNBLOCK, 11);
 		fsm.registerTransition(UNBLOCK, MOVE, 12);
+		fsm.registerTransition(MESS, UNBLOCK, 13);
 		
 		
 		lb.add(fsm);
